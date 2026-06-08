@@ -322,9 +322,44 @@ body {
   background: var(--brand-blue-light); color: var(--brand-blue);
   font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace;
 }
+
+.hamburger {
+  display: none;
+  flex-direction: column; justify-content: center; align-items: center;
+  gap: 5px; width: 36px; height: 36px; cursor: pointer;
+  border: none; background: transparent; border-radius: 8px;
+  transition: background .15s; flex-shrink: 0;
+}
+.hamburger:hover { background: var(--bg); }
+.hamburger span { display: block; width: 20px; height: 2px; background: var(--text-primary); border-radius: 2px; }
+
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0; z-index: 199;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);
+}
+.sidebar-overlay.visible { display: block; }
+
+/* ── RESPONSIVE MÓVIL ── */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.18); }
+  .main { margin-left: 0; }
+  .hamburger { display: flex; }
+  .topbar { padding: 0 14px; gap: 8px; }
+  .search-wrap { max-width: none; }
+  .topbar-icons .icon-btn:last-child { display: none; }
+  .content { padding: 14px; }
+  .client-stats { display: none; }
+  .client-header { flex-wrap: wrap; }
+  .client-actions { flex-direction: row; width: 100%; }
+  .robots-grid { grid-template-columns: 1fr; }
+  .options-table { display: none; }
+  .options-cards { display: flex; }
+}
 </style>
 </head>
 <body>
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
@@ -333,41 +368,41 @@ body {
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section">Principal</div>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="#" onclick="closeSidebar()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Dashboard
     </a>
-    <a class="nav-item active" href="#">
+    <a class="nav-item active" href="#" onclick="closeSidebar()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Clientes
     </a>
     <div class="nav-section">Equipos</div>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="#" onclick="closeSidebar()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
       Robots
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="#" onclick="closeSidebar()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
       Consumibles
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="#" onclick="closeSidebar()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
       Repuestos
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="#" onclick="closeSidebar()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
       Conj./Torcha
     </a>
     <div class="nav-section">Sistema</div>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="#" onclick="closeSidebar()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
       Base de Datos
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="#" onclick="closeSidebar()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
       Marcas
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item" href="#" onclick="closeSidebar()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Usuarios
     </a>
@@ -384,6 +419,7 @@ body {
 <!-- MAIN -->
 <div class="main">
   <header class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
     <div class="topbar-title">Clientes <span>/ Ficha</span></div>
     <div class="search-wrap">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -781,5 +817,20 @@ function togglePanel(btn, panelId) {
 }
 </script>
 
+<script>
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('overlay');
+  const open = sb.classList.toggle('open');
+  ov.classList.toggle('visible', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('visible');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+</script>
 </body>
 </html>
