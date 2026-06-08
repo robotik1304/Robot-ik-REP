@@ -182,6 +182,14 @@ body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text-pri
   .form-grid-2 { grid-template-columns:1fr; }
 }
 </style>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://bnjmorxjibwvwzadzrdm.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Hn-UQhr_TUJZ8qEAfEbBMg_-uEcJ5Hw';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
 </head>
 <body>
 
@@ -395,233 +403,79 @@ const USER_ROLES=['tecnico','administracion'];
 const isAdmin=USER_ROLES.includes('administracion');
 if (!isAdmin) document.querySelectorAll('[data-admin],[class*="admin-col"]').forEach(el=>el.style.display='none');
 
-// ── Datos iniciales
-let db = {
-  cons: [
-    {id:1,tipo:'Cuello',codigo:'44,0350,0088',desc:'Cuello Robacta 500A recto',marca:'Fronius',precio:72000},
-    {id:2,tipo:'Cuello',codigo:'44,0350,0089',desc:'Cuello Robacta 500A 22°',marca:'Fronius',precio:74000},
-    {id:3,tipo:'Cuello',codigo:'44,0350,0090',desc:'Cuello Robacta 500A 45°',marca:'Fronius',precio:76000},
-    {id:4,tipo:'Cuello',codigo:'145.0300',desc:'Cuello cig. 22° robótico',marca:'Binzel',precio:48500},
-    {id:5,tipo:'Cuello',codigo:'145.0301',desc:'Cuello cig. 45° robótico',marca:'Binzel',precio:51200},
-    {id:6,tipo:'Tobera',codigo:'42,0300,0587',desc:'Tobera cónica Ø16 Push',marca:'Fronius',precio:4200},
-    {id:7,tipo:'Tobera',codigo:'42,0300,0591',desc:'Tobera cilíndrica Ø15',marca:'Fronius',precio:3900},
-    {id:8,tipo:'Tobera',codigo:'42,0300,0605',desc:'Tobera larga Ø18',marca:'Fronius',precio:4600},
-    {id:9,tipo:'Tubo contacto',codigo:'42,0300,0148',desc:'Tubo contacto M6×28 Ø0.9mm',marca:'Fronius',precio:1200},
-    {id:10,tipo:'Tubo contacto',codigo:'42,0300,0152',desc:'Tubo contacto M6×28 Ø1.0mm',marca:'Fronius',precio:1200},
-    {id:11,tipo:'Tubo contacto',codigo:'42,0300,0156',desc:'Tubo contacto M6×28 Ø1.2mm',marca:'Fronius',precio:1250},
-    {id:12,tipo:'Tubo contacto',codigo:'082.0061',desc:'Tubo contacto M6×30 Ø0.9mm',marca:'Binzel',precio:1350},
-    {id:13,tipo:'Tubo contacto',codigo:'082.0063',desc:'Tubo contacto M6×30 Ø1.0mm',marca:'Binzel',precio:1400},
-    {id:14,tipo:'Difusor',codigo:'42,0300,0369',desc:'Difusor de gas M6',marca:'Fronius',precio:2950},
-    {id:15,tipo:'Difusor',codigo:'42,0300,0371',desc:'Difusor de gas M6 largo',marca:'Fronius',precio:3200},
-    {id:16,tipo:'Aislante',codigo:'145.0401',desc:'Aislante cerámico standard',marca:'Binzel',precio:3800},
-    {id:17,tipo:'Batería',codigo:'HW0470360-A',desc:'Batería eje 1–6 (set completo)',marca:'Yaskawa',precio:24800},
-    {id:18,tipo:'Batería',codigo:'HW0470361-A',desc:'Batería individual por eje',marca:'Yaskawa',precio:5200},
-    {id:19,tipo:'Lubricante',codigo:'FS110-B0000',desc:'Grasa Molywhite RE No.0',marca:'Yaskawa',precio:18500},
-    {id:20,tipo:'Lubricante',codigo:'FS100-A0000',desc:'Grasa Alvania EP2',marca:'Yaskawa',precio:16200},
-  ],
-  rep: [
-    {id:1,tipo:'Servomotor',codigo:'SGMRS-09A2A-YR11',desc:'Servomotor eje S (J1)',marca:'Yaskawa',precio:420000},
-    {id:2,tipo:'Servomotor',codigo:'SGMRS-05A2A-YR11',desc:'Servomotor eje L (J2)',marca:'Yaskawa',precio:390000},
-    {id:3,tipo:'Servomotor',codigo:'SGMRS-02A2A-YR11',desc:'Servomotor ejes B/R/T',marca:'Yaskawa',precio:310000},
-    {id:4,tipo:'Encoder',codigo:'HW0380960-1',desc:'Encoder absoluto 17-bit J1/J2',marca:'Yaskawa',precio:145000},
-    {id:5,tipo:'Encoder',codigo:'HW0380961-1',desc:'Encoder absoluto 17-bit J3–J6',marca:'Yaskawa',precio:138000},
-    {id:6,tipo:'Freno',codigo:'HW8100589-A',desc:'Unidad de freno eje S/L (J1/J2)',marca:'Yaskawa',precio:96000},
-    {id:7,tipo:'Freno',codigo:'HW8100590-A',desc:'Unidad de freno ejes B/R/T',marca:'Yaskawa',precio:78000},
-    {id:8,tipo:'Resistencia',codigo:'JZAB0P0A',desc:'Resistencia freno 47Ω / 300W',marca:'Yaskawa',precio:42000},
-    {id:9,tipo:'Resistencia',codigo:'JZAB0P1A',desc:'Resistencia freno 20Ω / 600W',marca:'Yaskawa',precio:56000},
-    {id:10,tipo:'Tarjeta',codigo:'JANCD-YCP01-E',desc:'Tarjeta CPU Robot',marca:'Yaskawa',precio:680000},
-    {id:11,tipo:'Tarjeta',codigo:'JANCD-YIO21-E',desc:'Tarjeta I/O 40E / 40S',marca:'Yaskawa',precio:320000},
-    {id:12,tipo:'Cable',codigo:'DX200-CBL-7M',desc:'Cable encoder robot 7m',marca:'Yaskawa',precio:62000},
-    {id:13,tipo:'Cable',codigo:'DX200-PWR-7M',desc:'Cable potencia robot 7m',marca:'Yaskawa',precio:74000},
-  ]
-};
-
+// ── Estado local (caché)
+let db = { cons: [], rep: [] };
 let filtros = { cons:'all', rep:'all' };
 let busquedas = { cons:'', rep:'' };
 let sortStates = { cons:{col:'tipo',asc:true}, rep:{col:'tipo',asc:true} };
 let tabActiva = 'cons';
 let editId = null;
 
-const brandTagHtml = m => {
-  const cls = {Fronius:'brand-fronius',Binzel:'brand-binzel',Yaskawa:'brand-yaskawa'}[m]||'';
-  return `<span class="brand-tag ${cls}">${m}</span>`;
-};
+// ── Cargar datos desde Supabase
+async function cargarItems() {
+  const { data, error } = await supabase
+    .from('items')
+    .select('*')
+    .order('tipo', { ascending: true });
 
-const tipoColors = {
-  'Cuello':'#7D3C98','Tobera':'#E8940A','Tubo contacto':'#1E8A4A',
-  'Difusor':'#2471A3','Aislante':'#717D7E','Batería':'#A93226',
-  'Lubricante':'#148F77','Servomotor':'#1A5276','Encoder':'#7E5109',
-  'Freno':'#922B21','Resistencia':'#6C3483','Tarjeta':'#1A5276','Cable':'#1E8A4A'
-};
+  if (error) { console.error('Error cargando items:', error); return; }
 
-function tipoTagHtml(t) {
-  const c = tipoColors[t]||'#5A6080';
-  return `<span class="tipo-tag" style="background:${c}18;color:${c};">${t}</span>`;
+  db.cons = data.filter(r => r.categoria === 'consumible').map(r => ({
+    id: r.id, tipo: r.tipo, codigo: r.codigo,
+    desc: r.descripcion, marca: r.marca, precio: r.precio_venta || 0
+  }));
+  db.rep = data.filter(r => r.categoria === 'repuesto').map(r => ({
+    id: r.id, tipo: r.tipo, codigo: r.codigo,
+    desc: r.descripcion, marca: r.marca, precio: r.precio_venta || 0
+  }));
+
+  renderTabla('cons');
+  renderTabla('rep');
 }
 
-function renderTabla(tab) {
-  const data = db[tab];
-  const filtro = filtros[tab];
-  const busq = busquedas[tab].toLowerCase();
-  const sort = sortStates[tab];
-
-  let lista = data.filter(r => {
-    const okMarca = filtro==='all' || r.marca===filtro;
-    const okBusq = !busq || r.codigo.toLowerCase().includes(busq) || r.desc.toLowerCase().includes(busq) || r.tipo.toLowerCase().includes(busq);
-    return okMarca && okBusq;
-  });
-
-  lista.sort((a,b) => {
-    const map = {tipo:'tipo',codigo:'codigo',desc:'desc',marca:'marca',precio:'precio'};
-    const k = map[sort.col]||'tipo';
-    const va = typeof a[k]==='number' ? a[k] : (a[k]||'').toLowerCase();
-    const vb = typeof b[k]==='number' ? b[k] : (b[k]||'').toLowerCase();
-    return sort.asc ? (va<vb?-1:va>vb?1:0) : (va>vb?-1:va<vb?1:0);
-  });
-
-  const tbody = document.getElementById('body'+cap(tab));
-  const empty = document.getElementById('empty'+cap(tab));
-
-  if (lista.length===0) {
-    tbody.innerHTML=''; empty.style.display='block';
-  } else {
-    empty.style.display='none';
-    tbody.innerHTML = lista.map(r => `
-      <tr data-id="${r.id}" data-tab="${tab}">
-        <td>${tipoTagHtml(r.tipo)}</td>
-        <td class="td-code">${r.codigo}</td>
-        <td class="td-desc">${r.desc}</td>
-        <td>${brandTagHtml(r.marca)}</td>
-        <td class="td-price admin-col">$ ${r.precio.toLocaleString('es-AR')}</td>
-        <td style="padding-right:14px!important;">
-          <div class="row-actions">
-            <button class="btn btn-ghost btn-sm btn-icon admin-col" title="Editar" onclick="editarItem('${tab}',${r.id})">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="btn btn-danger btn-sm btn-icon admin-col" title="Eliminar" onclick="eliminarItem('${tab}',${r.id},this)">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-            </button>
-          </div>
-        </td>
-      </tr>`).join('');
-    if (!isAdmin) tbody.querySelectorAll('.admin-col').forEach(el=>el.style.display='none');
-  }
-
-  document.getElementById('badge'+cap(tab)).textContent = lista.length;
-}
-
-function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
-
-function cambiarTab(btn,tab) {
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.section-panel').forEach(p=>p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('panel-'+tab).classList.add('active');
-  tabActiva=tab;
-}
-
-function filtrar(chip,tab,marca) {
-  chip.closest('.toolbar').querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active','fronius','binzel','yaskawa'));
-  chip.classList.add('active');
-  if (marca!=='all') chip.classList.add(marca.toLowerCase());
-  filtros[tab]=marca;
-  renderTabla(tab);
-}
-
-function buscar(tab,q) {
-  busquedas[tab]=q;
-  renderTabla(tab);
-}
-
-function ordenar(tab,col) {
-  const s=sortStates[tab];
-  if (s.col===col) s.asc=!s.asc;
-  else { s.col=col; s.asc=true; }
-  renderTabla(tab);
-}
-
-// ── MODAL
-function abrirModal(tab) {
-  editId=null;
-  document.getElementById('modalTitle').textContent='Nuevo ítem';
-  document.getElementById('mCategoria').value=tabActiva;
-  document.getElementById('mTipo').value='';
-  document.getElementById('mCodigo').value='';
-  document.getElementById('mDesc').value='';
-  document.getElementById('mMarca').value='Fronius';
-  document.getElementById('mPrecio').value='';
-  document.getElementById('modalOverlay').classList.add('visible');
-}
-
-function editarItem(tab,id) {
-  const item=db[tab].find(r=>r.id===id);
-  if (!item) return;
-  editId={tab,id};
-  document.getElementById('modalTitle').textContent='Editar ítem';
-  document.getElementById('mCategoria').value=tab;
-  document.getElementById('mTipo').value=item.tipo;
-  document.getElementById('mCodigo').value=item.codigo;
-  document.getElementById('mDesc').value=item.desc;
-  document.getElementById('mMarca').value=item.marca;
-  document.getElementById('mPrecio').value=item.precio;
-  document.getElementById('modalOverlay').classList.add('visible');
-}
-
-function cerrarModal() { document.getElementById('modalOverlay').classList.remove('visible'); }
-function cerrarModalClick(e) { if(e.target===document.getElementById('modalOverlay')) cerrarModal(); }
-
-function guardarItem() {
-  const tab=document.getElementById('mCategoria').value;
-  const item={
-    id: editId ? editId.id : (Math.max(0,...db[tab].map(r=>r.id))+1),
-    tipo:document.getElementById('mTipo').value.trim()||'Sin tipo',
-    codigo:document.getElementById('mCodigo').value.trim(),
-    desc:document.getElementById('mDesc').value.trim(),
-    marca:document.getElementById('mMarca').value,
-    precio:parseFloat(document.getElementById('mPrecio').value)||0,
+// ── Guardar item en Supabase
+async function guardarItem() {
+  const tab = document.getElementById('mCategoria').value;
+  const payload = {
+    categoria:    tab === 'cons' ? 'consumible' : 'repuesto',
+    tipo:         document.getElementById('mTipo').value.trim() || 'Sin tipo',
+    codigo:       document.getElementById('mCodigo').value.trim(),
+    descripcion:  document.getElementById('mDesc').value.trim(),
+    marca:        document.getElementById('mMarca').value,
+    precio_venta: parseFloat(document.getElementById('mPrecio').value) || 0,
   };
-  if (!item.codigo || !item.desc) { alert('Completá código y descripción.'); return; }
-  if (editId) {
-    const idx=db[editId.tab].findIndex(r=>r.id===editId.id);
-    if (editId.tab!==tab) { db[editId.tab].splice(idx,1); db[tab].push(item); }
-    else db[editId.tab][idx]=item;
-  } else {
-    db[tab].push(item);
+
+  if (!payload.codigo || !payload.descripcion) {
+    alert('Completá código y descripción.'); return;
   }
+
+  let error;
+  if (editId) {
+    ({ error } = await supabase.from('items').update(payload).eq('id', editId));
+  } else {
+    ({ error } = await supabase.from('items').insert(payload));
+  }
+
+  if (error) { alert('Error al guardar: ' + error.message); return; }
   cerrarModal();
-  renderTabla('cons'); renderTabla('rep');
+  await cargarItems();
 }
 
-function eliminarItem(tab,id,btn) {
-  const row=btn.closest('tr');
-  row.style.animation='fadeOut .15s ease forwards';
-  setTimeout(()=>{
-    db[tab]=db[tab].filter(r=>r.id!==id);
-    renderTabla(tab);
-  },150);
+// ── Eliminar item en Supabase
+async function eliminarItem(tab, id, btn) {
+  const row = btn.closest('tr');
+  row.style.animation = 'fadeOut .15s ease forwards';
+  setTimeout(async () => {
+    const { error } = await supabase.from('items').delete().eq('id', id);
+    if (error) { alert('Error al eliminar: ' + error.message); return; }
+    await cargarItems();
+  }, 150);
 }
 
-function exportar() { alert('Exportando a CSV… (funcionalidad a implementar en backend)'); }
-
-// Sidebar
-function toggleSidebar() {
-  const sb=document.getElementById('sidebar'),ov=document.getElementById('overlay');
-  const open=sb.classList.toggle('open');
-  ov.classList.toggle('visible',open);
-  document.body.style.overflow=open?'hidden':'';
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('visible');
-  document.body.style.overflow='';
-}
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ cerrarModal(); closeSidebar(); }
-});
+// eliminarItem -> reemplazado por versión async arriba);
 
 // Init
-renderTabla('cons');
-renderTabla('rep');
+cargarItems();
 </script>
 <style>
 @keyframes fadeOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(8px)}}
