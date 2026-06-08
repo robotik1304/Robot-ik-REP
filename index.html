@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robot-IK App — Índice de pantallas</title>
+<meta name="color-scheme" content="light">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --brand-blue:#0055A4; --brand-blue-dark:#003D7A; --brand-blue-light:#E8F0FB;
+  --accent:#F4A623; --bg:#F0F2F7; --text-primary:#1A1E2E; --text-secondary:#5A6080;
+  color-scheme:light;
+}
+body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text-primary); min-height:100vh; padding:40px 20px; }
+.container { max-width:860px; margin:0 auto; }
+.header { text-align:center; margin-bottom:40px; }
+.header img { width:200px; margin-bottom:20px; }
+.header h1 { font-size:24px; font-weight:700; color:var(--brand-blue-dark); }
+.header p { font-size:14px; color:var(--text-secondary); margin-top:6px; }
+.section-title {
+  font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1px;
+  color:var(--text-secondary); margin:28px 0 12px; padding-bottom:8px;
+  border-bottom:1px solid #E2E6EF;
+}
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; }
+.card {
+  background:#fff; border-radius:10px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.07);
+  padding:16px 18px; text-decoration:none;
+  border:1.5px solid transparent;
+  transition:all .18s; display:flex; align-items:flex-start; gap:12px;
+}
+.card:hover { border-color:var(--brand-blue-light); transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.11); }
+.card-num {
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+  color:var(--brand-blue); background:var(--brand-blue-light);
+  padding:3px 8px; border-radius:5px; flex-shrink:0; margin-top:1px;
+}
+.card-info {}
+.card-name { font-size:13.5px; font-weight:600; color:var(--text-primary); }
+.card-desc { font-size:11.5px; color:var(--text-secondary); margin-top:3px; }
+.badge-done { display:inline-block; font-size:9px; font-weight:700; padding:1px 6px; border-radius:4px; background:#E8F8F0; color:#1E8A4A; margin-left:6px; vertical-align:middle; }
+.footer { text-align:center; margin-top:48px; font-size:12px; color:var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Robot-IK App</h1>
+    <p>Prototipo de interfaces — Índice de pantallas</p>
+  </div>
+
+  <div class="section-title">Acceso</div>
+  <div class="grid">
+    <a class="card" href="html/p03_ficha_cliente.html">
+      <span class="card-num">P01</span>
+      <div class="card-info">
+        <div class="card-name">Login <span class="badge-done">✓</span></div>
+        <div class="card-desc">Acceso con usuario y contraseña</div>
+      </div>
+    </a>
+    <a class="card" href="html/p03_ficha_cliente.html">
+      <span class="card-num">P02</span>
+      <div class="card-info">
+        <div class="card-name">Dashboard <span class="badge-done">✓</span></div>
+        <div class="card-desc">Vista general del sistema</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="section-title">Clientes y robots</div>
+  <div class="grid">
+    <a class="card" href="html/p08_lista_clientes.html">
+      <span class="card-num">P08</span>
+      <div class="card-info">
+        <div class="card-name">Lista de clientes <span class="badge-done">✓</span></div>
+        <div class="card-desc">Grilla de cards con buscador y filtros</div>
+      </div>
+    </a>
+    <a class="card" href="html/p03_ficha_cliente.html">
+      <span class="card-num">P03</span>
+      <div class="card-info">
+        <div class="card-name">Ficha de cliente <span class="badge-done">✓</span></div>
+        <div class="card-desc">Header, robots asignados y consumibles</div>
+      </div>
+    </a>
+    <a class="card" href="html/p06_alta_robot.html">
+      <span class="card-num">P06</span>
+      <div class="card-info">
+        <div class="card-name">Alta / edición de robot <span class="badge-done">✓</span></div>
+        <div class="card-desc">3 pasos: datos, consumibles, repuestos</div>
+      </div>
+    </a>
+    <a class="card" href="html/p07_ficha_robot.html">
+      <span class="card-num">P07</span>
+      <div class="card-info">
+        <div class="card-name">Ficha de robot <span class="badge-done">✓</span></div>
+        <div class="card-desc">Configuración completa del robot</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="section-title">Catálogo de materiales</div>
+  <div class="grid">
+    <a class="card" href="html/p10_base_datos.html">
+      <span class="card-num">P10</span>
+      <div class="card-info">
+        <div class="card-name">Base de Datos <span class="badge-done">✓</span></div>
+        <div class="card-desc">Catálogo maestro: consumibles y repuestos</div>
+      </div>
+    </a>
+    <a class="card" href="html/p04_consumibles.html">
+      <span class="card-num">P04</span>
+      <div class="card-info">
+        <div class="card-name">Consumibles <span class="badge-done">✓</span></div>
+        <div class="card-desc">Grupos, subtipos y opciones del catálogo</div>
+      </div>
+    </a>
+    <a class="card" href="html/p05_repuestos.html">
+      <span class="card-num">P05</span>
+      <div class="card-info">
+        <div class="card-name">Repuestos <span class="badge-done">✓</span></div>
+        <div class="card-desc">Grupos, subtipos y opciones del catálogo</div>
+      </div>
+    </a>
+    <a class="card" href="html/p09_conjuntos.html">
+      <span class="card-num">P09</span>
+      <div class="card-info">
+        <div class="card-name">Conjuntos <span class="badge-done">✓</span></div>
+        <div class="card-desc">Kits con subtipos y opciones por robot</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="section-title">Sistema</div>
+  <div class="grid">
+    <a class="card" href="html/p11_usuarios.html">
+      <span class="card-num">P11</span>
+      <div class="card-info">
+        <div class="card-name">Usuarios <span class="badge-done">✓</span></div>
+        <div class="card-desc">Gestión de usuarios y asignación de roles</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="footer">
+    Robot-IK App · Prototipo de interfaces · 2025
+  </div>
+</div>
+</body>
+</html>
