@@ -196,6 +196,13 @@ body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text-pri
   .roles-selector { flex-direction:column; }
 }
 </style>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://bnjmorxjibwvwzadzrdm.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Hn-UQhr_TUJZ8qEAfEbBMg_-uEcJ5Hw';
+    const _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
 </head>
 <body>
 
@@ -365,13 +372,42 @@ body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text-pri
 </div>
 
 <script>
-// ── Datos
-let usuarios = [
-  {id:1, nombre:'Fredy R.', mail:'fredy@robot-ik.com', roles:['tecnico','administracion'], estado:'active'},
-  {id:2, nombre:'Martín López', mail:'martin@robot-ik.com', roles:['tecnico'], estado:'active'},
-  {id:3, nombre:'Laura Gómez', mail:'laura@robot-ik.com', roles:['administracion'], estado:'active'},
-  {id:4, nombre:'Carlos Díaz', mail:'carlos@robot-ik.com', roles:['tecnico'], estado:'inactive'},
-];
+
+// ── Cargar usuarios desde Supabase
+let usuarios = [];
+
+async function cargarUsuarios() {
+  const { data, error } = await _sb
+    .from('usuarios')
+    .select('*')
+    .order('nombre');
+  if (error) { console.error(error); return; }
+  usuarios = data.map(u => ({
+    id: u.id,
+    nombre: u.nombre,
+    mail: u.mail,
+    roles: [...(u.rol_tecnico ? ['tecnico'] : []), ...(u.rol_admin ? ['administracion'] : [])],
+    estado: u.activo ? 'active' : 'inactive',
+  }));
+  cargarUsuarios();
+}
+
+async // guardarUsuario -> async arriba
+
+async // eliminarUsuario -> async arriba
+
+async function eliminarDirecto(id, btn) {
+  if (!confirm('¿Eliminar este usuario?')) return;
+  const row = btn.closest('tr');
+  row.style.animation = 'fadeOut .15s ease forwards';
+  setTimeout(async () => {
+    const { error } = await _sb.from('usuarios').delete().eq('id', id);
+    if (error) { alert('Error: ' + error.message); return; }
+    await cargarUsuarios();
+  }, 150);
+}
+
+
 
 let filtroActivo = 'all';
 let busqueda = '';
@@ -517,37 +553,11 @@ function setEstado(e) {
   document.getElementById('optInactivo').className='estado-opt'+(e==='inactive'?' selected-inactive':'');
 }
 
-function guardarUsuario() {
-  const nombre=document.getElementById('mNombre').value.trim();
-  const mail=document.getElementById('mMail').value.trim();
-  const roles=[];
-  if (document.getElementById('chkTecnico').checked) roles.push('tecnico');
-  if (document.getElementById('chkAdmin').checked) roles.push('administracion');
+// guardarUsuario -> async arriba
 
-  if (!nombre||!mail) { alert('Nombre y mail son obligatorios.'); return; }
-  if (roles.length===0) { alert('Asigná al menos un rol.'); return; }
+// eliminarUsuario -> async arriba
 
-  if (editId) {
-    const u=usuarios.find(x=>x.id===editId);
-    u.nombre=nombre; u.mail=mail; u.roles=roles; u.estado=estadoSeleccionado;
-  } else {
-    usuarios.push({id:Date.now(),nombre,mail,roles,estado:estadoSeleccionado});
-  }
-  cerrarModal(); renderTabla();
-}
-
-function eliminarUsuario() {
-  if (!confirm('¿Eliminár este usuario?')) return;
-  usuarios=usuarios.filter(u=>u.id!==editId);
-  cerrarModal(); renderTabla();
-}
-
-function eliminarDirecto(id,btn) {
-  if (!confirm('¿Eliminar este usuario?')) return;
-  const row=btn.closest('tr');
-  row.style.animation='fadeOut .15s ease forwards';
-  setTimeout(()=>{ usuarios=usuarios.filter(u=>u.id!==id); renderTabla(); },150);
-}
+// eliminarDirecto -> async arriba
 
 // Sidebar
 function toggleSidebar() {

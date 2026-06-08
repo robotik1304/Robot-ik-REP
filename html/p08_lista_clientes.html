@@ -177,6 +177,13 @@ body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text-pri
   .search-inline input { width:130px; }
 }
 </style>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://bnjmorxjibwvwzadzrdm.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Hn-UQhr_TUJZ8qEAfEbBMg_-uEcJ5Hw';
+    const _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
 </head>
 <body>
 
@@ -265,7 +272,33 @@ body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text-pri
 
 <script>
 // ── Datos
-const clientes = [
+
+// ── Cargar clientes desde Supabase
+let clientes = [];
+
+async function cargarClientes() {
+  const { data, error } = await _sb
+    .from('clientes')
+    .select('*, robots(count)')
+    .order('nombre');
+
+  if (error) { console.error(error); return; }
+
+  clientes = data.map((c, i) => ({
+    id: c.id,
+    nombre: c.nombre,
+    ciudad: c.ciudad || '—',
+    mail: c.mail || '—',
+    robots: c.robots?.[0]?.count || 0,
+    estado: c.activo ? 'active' : 'inactive',
+    desde: new Date(c.created_at).toLocaleDateString('es-AR', {month:'short', year:'numeric'}),
+    stripeClass: ['stripe-a','stripe-b','stripe-c','stripe-d','stripe-e','stripe-f'][i % 6],
+    avatarClass: ['avatar-blue','avatar-green','avatar-amber','avatar-purple','avatar-red','avatar-teal'][i % 6],
+  }));
+  render();
+}
+
+const _clientes_backup = [
   { id:1, nombre:'Metcon S.A.', ciudad:'Córdoba', mail:'compras@metcon.com.ar', robots:4, estado:'active', desde:'Mar 2021', stripeClass:'stripe-a', avatarClass:'avatar-blue' },
   { id:2, nombre:'Plastiverde S.R.L.', ciudad:'Rosario', mail:'ing@plastiverde.com', robots:2, estado:'active', desde:'Jun 2020', stripeClass:'stripe-b', avatarClass:'avatar-green' },
   { id:3, nombre:'Agro Maq Norte', ciudad:'Tucumán', mail:'mantenimiento@agromaqnorte.com.ar', robots:6, estado:'active', desde:'Ene 2022', stripeClass:'stripe-c', avatarClass:'avatar-amber' },
@@ -400,7 +433,7 @@ function closeSidebar() {
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSidebar(); });
 
-render();
+cargarClientes();
 </script>
 </body>
 </html>

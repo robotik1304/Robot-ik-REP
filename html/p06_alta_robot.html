@@ -169,6 +169,12 @@ body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text-pri
   .step-tab span.step-label { display:none; }
 }
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://bnjmorxjibwvwzadzrdm.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Hn-UQhr_TUJZ8qEAfEbBMg_-uEcJ5Hw';
+    const _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
 </head>
 <body>
 
@@ -582,32 +588,52 @@ function pasoAnterior() {
   if (pasoActual>1) irAPaso(pasoActual-1);
 }
 
-function guardarRobot() {
-  const modelo = document.getElementById('fModelo').value || 'MA1440';
-  const serial = document.getElementById('fSerial').value || '(nuevo)';
-  const ubicacion = document.getElementById('fUbicacion').value || 'Sin ubicación';
-  const cons = Array.from(document.querySelectorAll('#step2 .cat-opt input:checked'));
-  const reps = Array.from(document.querySelectorAll('#step3 .cat-opt input:checked'));
+async function guardarRobot() {
+  const modelo   = document.getElementById('fModelo').value || 'MA1440';
+  const serial   = document.getElementById('fSerial').value.trim();
+  const ubicacion= document.getElementById('fUbicacion').value.trim();
+  const cons = Array.from(document.querySelectorAll('#step2 .cat-opt input:checked')).map(i => i.value);
+  const reps = Array.from(document.querySelectorAll('#step3 .cat-opt input:checked')).map(i => i.value);
 
-  const consPills = cons.map(i=>{
-    const desc = i.closest('.cat-opt').querySelector('.cat-opt-desc').textContent;
-    return `<span class="config-pill cons">${i.value} — ${desc}</span>`;
+  // 1. Guardar robot (cliente fijo por ahora — Metcon S.A.)
+  // En producción el cliente_id vendrá del contexto de navegación
+  const { data: robot, error: errRobot } = await _sb
+    .from('robots')
+    .insert({ modelo, serial, ubicacion, aplicacion: 'Soldadura arco', controlador: 'YRC1000' })
+    .select()
+    .single();
+
+  if (errRobot) { alert('Error al guardar robot: ' + errRobot.message); return; }
+
+  // 2. Buscar IDs de los items seleccionados y vincularlos
+  const codigos = [...cons, ...reps];
+  if (codigos.length > 0) {
+    const { data: items } = await _sb.from('items').select('id,codigo').in('codigo', codigos);
+    if (items && items.length > 0) {
+      const links = items.map(item => ({ robot_id: robot.id, item_id: item.id }));
+      await _sb.from('robot_items').insert(links);
+    }
+  }
+
+  // 3. Agregar card en UI
+  const consPills = cons.map(v => {
+    const desc = document.querySelector(`#step2 .cat-opt input[value="${v}"]`)?.closest('.cat-opt')?.querySelector('.cat-opt-desc')?.textContent || v;
+    return `<span class="config-pill cons">${v} — ${desc}</span>`;
   }).join('');
-  const repPills = reps.map(i=>{
-    const desc = i.closest('.cat-opt').querySelector('.cat-opt-desc').textContent;
-    return `<span class="config-pill rep">${i.value} — ${desc}</span>`;
+  const repPills = reps.map(v => {
+    const desc = document.querySelector(`#step3 .cat-opt input[value="${v}"]`)?.closest('.cat-opt')?.querySelector('.cat-opt-desc')?.textContent || v;
+    return `<span class="config-pill rep">${v} — ${desc}</span>`;
   }).join('');
 
   const card = document.createElement('div');
-  card.className='robot-card';
-  card.style.animation='fadeIn .3s ease';
-  card.innerHTML=`
+  card.className = 'robot-card';
+  card.innerHTML = `
     <div class="rc-header">
       <div class="rc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
       <div class="rc-info">
         <div class="rc-model">${modelo}</div>
-        <div class="rc-serial">S/N: ${serial}</div>
-        <div class="rc-loc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${ubicacion}</div>
+        <div class="rc-serial">S/N: ${serial || '(nuevo)'}</div>
+        <div class="rc-loc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${ubicacion || 'Sin ubicación'}</div>
       </div>
       <div class="rc-status status-active"><div class="status-dot"></div>Activo</div>
       <div class="rc-actions">
@@ -620,7 +646,7 @@ function guardarRobot() {
   document.getElementById('robotsList').appendChild(card);
   document.getElementById('robotCount').textContent = document.querySelectorAll('.robot-card').length;
   cerrarFormulario();
-  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
