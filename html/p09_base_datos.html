@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Robot-IK — Repuestos</title>
+<title>Robot-IK — Base de Datos</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; color-scheme: light; }
@@ -35,7 +35,7 @@ body { font-family: Sora, sans-serif; background: var(--bg); color: var(--text-p
 .topbar { height: var(--topbar-h); background: #fff; border-bottom: 1px solid #E2E6EF; display: flex; align-items: center; gap: 16px; padding: 0 28px; position: sticky; top: 0; z-index: 50; }
 .topbar-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
 .topbar-search { flex: 1; max-width: 360px; display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid #D8DCE8; border-radius: 8px; padding: 0 12px; height: 36px; }
-.topbar-search input { border: none; background: none; outline: none; font-family: Sora, sans-serif; font-size: 0.85rem; color: var(--text-primary); width: 100%; }
+.topbar-search input { border: none; background: none; outline: none; font-family: Sora, sans-serif; font-size: 0.85rem; width: 100%; }
 .topbar-icons { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 .icon-btn { width: 36px; height: 36px; border-radius: 8px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: background .2s; }
 .icon-btn:hover { background: var(--bg); }
@@ -45,11 +45,11 @@ body { font-family: Sora, sans-serif; background: var(--bg); color: var(--text-p
 .content { padding: 28px; flex: 1; }
 
 /* TOOLBAR */
-.toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 .toolbar-left { display: flex; align-items: center; gap: 10px; flex: 1; flex-wrap: wrap; }
-.toolbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.search-box { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #D8DCE8; border-radius: 8px; padding: 0 12px; height: 38px; min-width: 260px; }
-.search-box input { border: none; background: none; outline: none; font-family: Sora, sans-serif; font-size: 0.85rem; color: var(--text-primary); width: 100%; }
+.toolbar-right { display: flex; gap: 8px; flex-shrink: 0; }
+.search-box { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #D8DCE8; border-radius: 8px; padding: 0 12px; height: 38px; min-width: 240px; flex: 1; max-width: 340px; }
+.search-box input { border: none; background: none; outline: none; font-family: Sora, sans-serif; font-size: 0.85rem; width: 100%; }
 .filter-select { height: 38px; border: 1px solid #D8DCE8; border-radius: 8px; padding: 0 12px; font-family: Sora, sans-serif; font-size: 0.82rem; color: var(--text-primary); background: #fff; cursor: pointer; outline: none; }
 .filter-select:focus { border-color: var(--brand-blue); }
 .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; font-family: Sora, sans-serif; cursor: pointer; border: none; transition: all .2s; white-space: nowrap; }
@@ -59,15 +59,21 @@ body { font-family: Sora, sans-serif; background: var(--bg); color: var(--text-p
 
 /* STATS */
 .stats-strip { display: flex; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
-.stat-card { background: #fff; border-radius: 10px; padding: 14px 20px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow); flex: 1; min-width: 140px; }
+.stat-card { background: #fff; border-radius: 10px; padding: 14px 20px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow); flex: 1; min-width: 130px; }
 .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .stat-icon svg { width: 20px; height: 20px; }
 .stat-n { font-size: 1.4rem; font-weight: 700; color: var(--text-primary); font-family: "JetBrains Mono", monospace; line-height: 1; }
 .stat-l { font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px; }
 
+/* TABS */
+.tabs-bar { display: flex; gap: 4px; margin-bottom: 16px; background: #fff; border-radius: 10px; padding: 6px; box-shadow: var(--shadow); width: fit-content; }
+.tab-pill { padding: 7px 18px; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: none; background: none; font-family: Sora, sans-serif; color: var(--text-secondary); transition: all .2s; }
+.tab-pill:hover { color: var(--brand-blue); }
+.tab-pill.active { background: var(--brand-blue); color: #fff; }
+
 /* TABLE */
 .table-wrap { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
-.table-header { padding: 16px 20px; border-bottom: 1px solid #F0F2F7; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.table-header { padding: 16px 20px; border-bottom: 1px solid #F0F2F7; display: flex; align-items: center; justify-content: space-between; }
 .table-title { font-size: 0.9rem; font-weight: 700; }
 .table-count { font-size: 0.8rem; color: var(--text-secondary); }
 table { width: 100%; border-collapse: collapse; }
@@ -75,20 +81,22 @@ thead th { padding: 11px 16px; text-align: left; font-size: 0.72rem; font-weight
 tbody tr { border-bottom: 1px solid #F0F2F7; transition: background .15s; }
 tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: #FAFBFD; }
-tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
-.cod { font-family: "JetBrains Mono", monospace; font-size: 0.78rem; color: var(--text-secondary); background: var(--bg); padding: 3px 8px; border-radius: 5px; }
-.marca-tag { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
+tbody td { padding: 11px 16px; font-size: 0.84rem; vertical-align: middle; }
+.cod { font-family: "JetBrains Mono", monospace; font-size: 0.78rem; color: var(--text-secondary); background: var(--bg); padding: 3px 8px; border-radius: 5px; white-space: nowrap; }
+.desc-cell { max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.marca-tag { display: inline-flex; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
 .tag-fronius  { background: #FBE9E7; color: #BF360C; }
 .tag-binzel   { background: #E8F5E9; color: #1B5E20; }
 .tag-yaskawa  { background: #E3F2FD; color: #0D47A1; }
 .tag-esab     { background: #FFF8E1; color: #F57F17; }
 .tag-otro     { background: #F3E5F5; color: #4A148C; }
-.cat-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; }
-.cat-repuesto { background: #FFF3E0; color: #E65100; }
-.desc-cell { max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.actions-cell { display: flex; align-items: center; gap: 6px; }
+.cat-badge { display: inline-flex; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; }
+.cat-consumible { background: var(--brand-blue-light); color: var(--brand-blue); }
+.cat-repuesto   { background: #FFF3E0; color: #E65100; }
+.actions-cell { display: flex; align-items: center; gap: 4px; }
 .action-btn { width: 30px; height: 30px; border-radius: 7px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: all .2s; }
 .action-btn:hover { background: var(--brand-blue-light); color: var(--brand-blue); }
+.action-btn.danger:hover { background: #FFEBEE; color: #c62828; }
 .action-btn svg { width: 15px; height: 15px; }
 
 /* PAGINATION */
@@ -109,7 +117,7 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
   .overlay.show { display: block; }
   .content { padding: 16px; }
-  .search-box { min-width: 180px; }
+  .search-box { min-width: 160px; }
   table thead th:nth-child(1), table tbody td:nth-child(1) { display: none; }
 }
 </style>
@@ -131,11 +139,9 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>Robots</a>
     <a class="nav-item" href="#">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>Consumibles</a>
-    <a class="nav-item active" href="#">
+    <a class="nav-item" href="#">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>Repuestos</a>
-    <a class="nav-item" href="#">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Conjuntos</a>
-    <a class="nav-item" href="#">
+    <a class="nav-item active" href="#">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>Base de Datos</a>
     <a class="nav-item" href="#">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>Usuarios</a>
@@ -151,10 +157,10 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
     <button class="icon-btn hamburger" onclick="toggleSidebar()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
-    <span class="topbar-title">Repuestos</span>
+    <span class="topbar-title">Base de Datos</span>
     <div class="topbar-search">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      <input type="text" placeholder="Buscar en toda la app...">
+      <input type="text" placeholder="Buscar...">
     </div>
     <div class="topbar-icons">
       <button class="icon-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></button>
@@ -172,55 +178,56 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
         </div>
         <select class="filter-select" id="filter-marca" onchange="filtrar()">
           <option value="">Todas las marcas</option>
-          <option value="Fronius">Fronius</option>
-          <option value="Binzel">Binzel</option>
-          <option value="Yaskawa">Yaskawa</option>
-          <option value="ESAB">ESAB</option>
-          <option value="Bosch Rexroth">Bosch Rexroth</option>
-          <option value="Festo">Festo</option>
+          <option>Fronius</option><option>Binzel</option><option>Yaskawa</option>
+          <option>ESAB</option><option>Bosch Rexroth</option><option>AirLiquide</option>
+          <option>Festo</option><option>Lincoln</option><option>Tieweld</option>
         </select>
       </div>
       <div class="toolbar-right">
         <button class="btn btn-primary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Nuevo repuesto
+          Nuevo ítem
         </button>
       </div>
     </div>
 
     <div class="stats-strip">
       <div class="stat-card">
+        <div class="stat-icon" style="background:var(--brand-blue-light)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0055A4" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </div>
+        <div><div class="stat-n" id="stat-total">—</div><div class="stat-l">Total ítems</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--brand-blue-light)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0055A4" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        </div>
+        <div><div class="stat-n" id="stat-cons">—</div><div class="stat-l">Consumibles</div></div>
+      </div>
+      <div class="stat-card">
         <div class="stat-icon" style="background:#FFF3E0">
           <svg viewBox="0 0 24 24" fill="none" stroke="#E65100" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
         </div>
-        <div><div class="stat-n" id="stat-total">—</div><div class="stat-l">Total repuestos</div></div>
+        <div><div class="stat-n" id="stat-rep">—</div><div class="stat-l">Repuestos</div></div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon" style="background:#FBE9E7">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#BF360C" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div class="stat-icon" style="background:#F3E5F5">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#6A1B9A" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
-        <div><div class="stat-n" id="stat-fronius">—</div><div class="stat-l">Fronius</div></div>
+        <div><div class="stat-n" id="stat-marcas">—</div><div class="stat-l">Marcas</div></div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#E3F2FD">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#0D47A1" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </div>
-        <div><div class="stat-n" id="stat-yaskawa">—</div><div class="stat-l">Yaskawa</div></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#E8F5E9">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </div>
-        <div><div class="stat-n" id="stat-binzel">—</div><div class="stat-l">Binzel</div></div>
-      </div>
+    </div>
+
+    <div class="tabs-bar">
+      <button class="tab-pill active" onclick="cambiarTab('todos', this)">Todos</button>
+      <button class="tab-pill" onclick="cambiarTab('consumible', this)">Consumibles</button>
+      <button class="tab-pill" onclick="cambiarTab('repuesto', this)">Repuestos</button>
     </div>
 
     <div class="table-wrap">
       <div class="table-header">
-        <div>
-          <span class="table-title">Catálogo de repuestos</span>
-          <span class="table-count" id="table-count"></span>
-        </div>
+        <span class="table-title">Catálogo maestro</span>
+        <span class="table-count" id="table-count"></span>
       </div>
       <div style="overflow-x:auto">
         <table>
@@ -255,86 +262,115 @@ const sb = supabase.createClient(
 );
 
 let todos = [], filtrados = [];
-const POR_PAG = 20;
+let tabActual = 'todos';
+const POR_PAG = 25;
 let pagina = 1;
 
-function marcaTag(marca) {
-  const m = (marca||'').toLowerCase();
-  if (m==='fronius')  return '<span class="marca-tag tag-fronius">Fronius</span>';
-  if (m==='binzel')   return '<span class="marca-tag tag-binzel">Binzel</span>';
-  if (m==='yaskawa')  return '<span class="marca-tag tag-yaskawa">Yaskawa</span>';
-  if (m==='esab')     return '<span class="marca-tag tag-esab">ESAB</span>';
-  return `<span class="marca-tag tag-otro">${marca||'—'}</span>`;
+function marcaTag(m) {
+  const ml = (m||'').toLowerCase();
+  if (ml==='fronius')  return `<span class="marca-tag tag-fronius">Fronius</span>`;
+  if (ml==='binzel')   return `<span class="marca-tag tag-binzel">Binzel</span>`;
+  if (ml==='yaskawa')  return `<span class="marca-tag tag-yaskawa">Yaskawa</span>`;
+  if (ml==='esab')     return `<span class="marca-tag tag-esab">ESAB</span>`;
+  return `<span class="marca-tag tag-otro">${m||'—'}</span>`;
+}
+
+function catBadge(c) {
+  if (c==='consumible') return '<span class="cat-badge cat-consumible">Consumible</span>';
+  if (c==='repuesto')   return '<span class="cat-badge cat-repuesto">Repuesto</span>';
+  return `<span class="cat-badge" style="background:#eee;color:#666">${c||'—'}</span>`;
 }
 
 async function cargarItems() {
-  const { data, error } = await sb.from('items').select('*').eq('categoria','repuesto').order('marca').order('descripcion');
+  const { data, error } = await sb.from('items').select('*').order('marca').order('descripcion');
   if (error) {
     document.getElementById('tabla-body').innerHTML =
-      '<tr><td colspan="5" style="text-align:center;padding:40px;color:#e53935">Error: '+error.message+'</td></tr>';
+      `<tr><td colspan="5" style="text-align:center;padding:40px;color:#e53935">Error: ${error.message}</td></tr>`;
     return;
   }
   todos = data || [];
-  document.getElementById('stat-total').textContent   = todos.length;
-  document.getElementById('stat-fronius').textContent = todos.filter(x=>x.marca==='Fronius').length;
-  document.getElementById('stat-yaskawa').textContent = todos.filter(x=>x.marca==='Yaskawa').length;
-  document.getElementById('stat-binzel').textContent  = todos.filter(x=>x.marca==='Binzel').length;
+
+  // Stats
+  const cons   = todos.filter(x => x.categoria === 'consumible').length;
+  const rep    = todos.filter(x => x.categoria === 'repuesto').length;
+  const marcas = new Set(todos.map(x => x.marca).filter(Boolean)).size;
+  document.getElementById('stat-total').textContent  = todos.length;
+  document.getElementById('stat-cons').textContent   = cons;
+  document.getElementById('stat-rep').textContent    = rep;
+  document.getElementById('stat-marcas').textContent = marcas;
+
+  filtrar();
+}
+
+function cambiarTab(tab, btn) {
+  tabActual = tab;
+  document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  pagina = 1;
   filtrar();
 }
 
 function filtrar() {
   const q     = document.getElementById('search-input').value.toLowerCase().trim();
   const marca = document.getElementById('filter-marca').value;
+
   filtrados = todos.filter(item => {
-    const mM = !marca || item.marca === marca;
-    const mQ = !q || (item.codigo||'').toLowerCase().includes(q) || (item.descripcion||'').toLowerCase().includes(q);
-    return mM && mQ;
+    const mTab   = tabActual === 'todos' || item.categoria === tabActual;
+    const mMarca = !marca || item.marca === marca;
+    const mQ     = !q ||
+      (item.codigo      || '').toLowerCase().includes(q) ||
+      (item.descripcion || '').toLowerCase().includes(q);
+    return mTab && mMarca && mQ;
   });
+
   pagina = 1;
   render();
 }
 
 function render() {
   const total  = filtrados.length;
-  const inicio = (pagina-1)*POR_PAG;
-  const fin    = Math.min(inicio+POR_PAG, total);
+  const inicio = (pagina - 1) * POR_PAG;
+  const fin    = Math.min(inicio + POR_PAG, total);
   const page   = filtrados.slice(inicio, fin);
 
-  document.getElementById('table-count').textContent = ' — '+total+' ítems';
-  document.getElementById('pag-info').textContent = total===0 ? 'Sin resultados' : `Mostrando ${inicio+1}–${fin} de ${total}`;
+  document.getElementById('table-count').textContent = ' — ' + total + ' ítems';
+  document.getElementById('pag-info').textContent = total === 0
+    ? 'Sin resultados'
+    : `Mostrando ${inicio + 1}–${fin} de ${total}`;
 
   if (!page.length) {
     document.getElementById('tabla-body').innerHTML =
-      '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-secondary)">No se encontraron repuestos.</td></tr>';
-    document.getElementById('pag-btns').innerHTML='';
+      '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-secondary)">No se encontraron ítems.</td></tr>';
+    document.getElementById('pag-btns').innerHTML = '';
     return;
   }
 
-  document.getElementById('tabla-body').innerHTML = page.map(item=>`
+  document.getElementById('tabla-body').innerHTML = page.map(item => `
     <tr>
-      <td><span class="cod">${item.codigo||'—'}</span></td>
-      <td class="desc-cell" title="${item.descripcion||''}">${item.descripcion||'—'}</td>
+      <td><span class="cod">${item.codigo || '—'}</span></td>
+      <td class="desc-cell" title="${item.descripcion || ''}">${item.descripcion || '—'}</td>
       <td>${marcaTag(item.marca)}</td>
-      <td><span class="cat-badge cat-repuesto">Repuesto</span></td>
+      <td>${catBadge(item.categoria)}</td>
       <td>
         <div class="actions-cell">
-          <button class="action-btn" title="Ver detalle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
           <button class="action-btn" title="Editar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="action-btn danger" title="Eliminar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
           </button>
         </div>
       </td>
     </tr>
   `).join('');
 
-  const totalPags = Math.ceil(total/POR_PAG);
+  // Paginación
+  const totalPags = Math.ceil(total / POR_PAG);
   let btns = `<button class="page-btn" onclick="irPag(${pagina-1})" ${pagina===1?'disabled':''}>‹</button>`;
-  for (let p=1; p<=totalPags; p++) {
-    if (totalPags<=7 || Math.abs(p-pagina)<=2 || p===1 || p===totalPags)
+  for (let p = 1; p <= totalPags; p++) {
+    if (totalPags <= 7 || Math.abs(p - pagina) <= 2 || p === 1 || p === totalPags)
       btns += `<button class="page-btn ${p===pagina?'active':''}" onclick="irPag(${p})">${p}</button>`;
-    else if (Math.abs(p-pagina)===3)
+    else if (Math.abs(p - pagina) === 3)
       btns += `<span style="padding:0 4px;color:var(--text-secondary)">…</span>`;
   }
   btns += `<button class="page-btn" onclick="irPag(${pagina+1})" ${pagina===totalPags?'disabled':''}>›</button>`;
@@ -342,10 +378,11 @@ function render() {
 }
 
 function irPag(p) {
-  const tot = Math.ceil(filtrados.length/POR_PAG);
-  if (p<1||p>tot) return;
-  pagina=p; render();
-  document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+  const tot = Math.ceil(filtrados.length / POR_PAG);
+  if (p < 1 || p > tot) return;
+  pagina = p;
+  render();
+  document.querySelector('.table-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function toggleSidebar() {
