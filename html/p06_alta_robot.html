@@ -187,11 +187,14 @@ body { font-family: Sora, sans-serif; background: var(--bg); color: var(--text-p
       <div class="form-card-body">
         <div class="form-row" style="margin-bottom:14px">
           <div class="form-group"><label class="form-label">Modelo *</label>
-            <select class="form-select" id="f-modelo">
-              <option value="">Seleccionar...</option>
-              <option>MA1440</option><option>MA1900</option><option>ES165D</option>
-              <option>MH180</option><option>GP25</option><option>Otro</option>
-            </select>
+            <div style="display:flex;gap:8px">
+              <select class="form-select" id="f-modelo" style="flex:1">
+                <option value="">Cargando modelos...</option>
+              </select>
+              <button type="button" class="btn btn-outline" style="flex-shrink:0;padding:0 12px" title="Agregar nuevo modelo" onclick="abrirModalModelo()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
           </div>
           <div class="form-group"><label class="form-label">Controlador</label>
             <select class="form-select" id="f-ctrl">
@@ -291,6 +294,7 @@ document.getElementById('cli-mini-nombre').textContent = clienteNombre || 'Clien
 document.getElementById('cli-av').textContent = iniciales(clienteNombre);
 document.getElementById('bc-cliente').textContent = clienteNombre || 'Cliente';
 document.getElementById('topbar-title').textContent = 'Nuevo Robot';
+cargarModelos();
 
 function volverFicha() { window.location.href = `p03_ficha_cliente.html?id=${clienteId}`; }
 
@@ -456,4 +460,26 @@ async function guardarRobot() {
   window.location.href = `p03_ficha_cliente.html?id=${clienteId}`;
 }
 </script>
+
+<!-- MODAL NUEVO MODELO -->
+<div class="modal-overlay" id="modal-modelo">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <span class="modal-title">Nuevo modelo</span>
+      <button class="modal-close" onclick="cerrarModalModelo()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nombre del modelo *</label>
+        <input class="form-input" id="nuevo-modelo-nombre" placeholder="Ej: GP7, AR900..." oninput="this.value=this.value.toUpperCase()">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModalModelo()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarNuevoModelo()">Agregar</button>
+    </div>
+  </div>
+</div>
 </body></html>
