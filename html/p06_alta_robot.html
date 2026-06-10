@@ -482,6 +482,48 @@ async function guardarRobot() {
 
   window.location.href = `p03_ficha_cliente.html?id=${clienteId}`;
 }
+
+// ── MODELOS DINÁMICOS ──────────────────────────────────────────
+async function cargarModelos() {
+  const { data, error } = await sb.from('modelos').select('nombre').order('nombre');
+  const sel = document.getElementById('f-modelo');
+  if (error || !data) {
+    sel.innerHTML = '<option value="">Error al cargar modelos</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">Seleccionar modelo...</option>' +
+    data.map(m => '<option value="' + m.nombre + '">' + m.nombre + '</option>').join('');
+}
+
+function abrirModalModelo() {
+  document.getElementById('nuevo-modelo-nombre').value = '';
+  document.getElementById('modal-modelo').classList.add('open');
+  setTimeout(function() { document.getElementById('nuevo-modelo-nombre').focus(); }, 100);
+}
+
+function cerrarModalModelo() {
+  document.getElementById('modal-modelo').classList.remove('open');
+}
+
+async function guardarNuevoModelo() {
+  const nombre = document.getElementById('nuevo-modelo-nombre').value.trim().toUpperCase();
+  if (!nombre) { alert('Ingresá el nombre del modelo.'); return; }
+  const { error } = await sb.from('modelos').insert({ nombre: nombre });
+  if (error) {
+    if (error.message.includes('unique')) { alert('Ese modelo ya existe.'); }
+    else { alert('Error: ' + error.message); }
+    return;
+  }
+  cerrarModalModelo();
+  await cargarModelos();
+  document.getElementById('f-modelo').value = nombre;
+}
+
+document.getElementById('modal-modelo').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModalModelo();
+});
+
+cargarModelos();
 </script>
 
 </body></html>
