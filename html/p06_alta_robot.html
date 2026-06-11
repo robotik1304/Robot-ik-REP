@@ -104,6 +104,14 @@ body{font-family:Sora,sans-serif;background:var(--bg);color:var(--text-primary);
 </style>
 </head>
 <body>
+<script>
+(function(){
+  // Guard de sesión: si no hay usuario logueado, redirigir al login
+  var _u = sessionStorage.getItem('rik_user');
+  if (!_u) { window.location.replace('p01_login.html'); }
+})();
+</script>
+
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
 <div class="modal-overlay" id="modal-modelo">
@@ -138,6 +146,10 @@ body{font-family:Sora,sans-serif;background:var(--bg);color:var(--text-primary);
     <div class="user-avatar">FA</div>
     <div><div class="user-name">Fredy A.</div><div class="user-role">Administrador</div></div>
   </div>
+  <button onclick="cerrarSesion()" style="margin:0 16px 16px;padding:9px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);border:none;border-radius:8px;font-family:Sora,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Cerrar sesión
+  </button>
 </aside>
 
 <div class="main">
@@ -437,5 +449,29 @@ document.getElementById('modal-modelo').addEventListener('click', function(e){ i
 document.getElementById('nuevo-modelo-nombre').addEventListener('keydown', function(e){ if(e.key==='Enter') guardarNuevoModelo(); });
 cargarModelos();
 
+
+function cerrarSesion(){
+  sessionStorage.removeItem('rik_user');
+  try { if(typeof sb!=='undefined' && sb.auth) sb.auth.signOut(); } catch(e){}
+  window.location.replace('p01_login.html');
+}
+function _pintarUsuario(){
+  try {
+    var u = JSON.parse(sessionStorage.getItem('rik_user')||'{}');
+    if(u.nombre){
+      var ini = u.nombre.trim().split(/\s+/).slice(0,2).map(function(p){return p[0].toUpperCase();}).join('');
+      var avEl = document.getElementById('sb-iniciales'); if(avEl) avEl.textContent = ini;
+      var nmEl = document.getElementById('sb-nombre'); if(nmEl) nmEl.textContent = u.nombre;
+      var rlEl = document.getElementById('sb-rol');
+      if(rlEl){
+        var roles = [];
+        if(u.rol_admin) roles.push('Administración');
+        if(u.rol_tecnico) roles.push('Técnico');
+        rlEl.textContent = roles.join(' · ') || 'Sin rol';
+      }
+    }
+  } catch(e){}
+}
+_pintarUsuario();
 </script>
 </body></html>
