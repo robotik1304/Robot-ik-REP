@@ -259,10 +259,8 @@ body { font-family: Sora, sans-serif; background: var(--bg); color: var(--text-p
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const sb = supabase.createClient(
-  "https://bnjmorxjibwvwzadzrdm.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuam1vcnhqaWJ3dnd6YWR6cmRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NzU1MDEsImV4cCI6MjA5NjQ1MTUwMX0.sMNUpbVPKqJf0gDVS6LimaDDfMsYi-Im6kVnedFIfN4"
-);
+const sb = supabase.createClient("https://bnjmorxjibwvwzadzrdm.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuam1vcnhqaWJ3dnd6YWR6cmRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NzU1MDEsImV4cCI6MjA5NjQ1MTUwMX0.sMNUpbVPKqJf0gDVS6LimaDDfMsYi-Im6kVnedFIfN4", { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
 
 let todos = [], filtrados = [];
 let editandoId = null;
@@ -403,7 +401,7 @@ cargarUsuarios();
 
 function cerrarSesion(){
   sessionStorage.removeItem('rik_user');
-  try { if(typeof sb!=='undefined' && sb.auth) sb.auth.signOut(); } catch(e){}
+  try { localStorage.clear(); } catch(e){}
   window.location.replace('p01_login.html');
 }
 function _pintarUsuario(){

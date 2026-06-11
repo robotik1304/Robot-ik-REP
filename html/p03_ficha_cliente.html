@@ -181,7 +181,7 @@ body { font-family: Sora, sans-serif; background: var(--bg); color: var(--text-p
 
 const _SB_URL = "https://bnjmorxjibwvwzadzrdm.supabase.co";
 const _SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuam1vcnhqaWJ3dnd6YWR6cmRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NzU1MDEsImV4cCI6MjA5NjQ1MTUwMX0.sMNUpbVPKqJf0gDVS6LimaDDfMsYi-Im6kVnedFIfN4";
-const sb = supabase.createClient(_SB_URL, _SB_KEY);
+const sb = supabase.createClient(_SB_URL, _SB_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
 
 function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
@@ -288,7 +288,7 @@ cargarCliente();
 
 function cerrarSesion(){
   sessionStorage.removeItem('rik_user');
-  try { if(typeof sb!=='undefined' && sb.auth) sb.auth.signOut(); } catch(e){}
+  try { localStorage.clear(); } catch(e){}
   window.location.replace('p01_login.html');
 }
 function _pintarUsuario(){

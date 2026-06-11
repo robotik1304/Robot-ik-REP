@@ -260,7 +260,7 @@ function toggleSidebar() {
 
 function cerrarSesion(){
   sessionStorage.removeItem('rik_user');
-  try { if(typeof sb!=='undefined' && sb.auth) sb.auth.signOut(); } catch(e){}
+  try { localStorage.clear(); } catch(e){}
   window.location.replace('p01_login.html');
 }
 function _pintarUsuario(){
