@@ -213,6 +213,38 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
 
 
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+<div class="modal-overlay" id="modal-item" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;max-height:90vh;overflow-y:auto;">
+    <div style="padding:20px 24px;border-bottom:1px solid #F0F2F7;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:1rem;font-weight:700;" id="modal-item-titulo">Nuevo ítem</span>
+      <button onclick="cerrarModalItem()" style="width:32px;height:32px;border-radius:8px;border:none;background:none;cursor:pointer;color:#5A6270;font-size:1.2rem;">&times;</button>
+    </div>
+    <div style="padding:24px;display:flex;flex-direction:column;gap:14px;">
+      <div class="form-group">
+        <label class="form-label">Código</label>
+        <input class="form-input" id="it-codigo" placeholder="Ej: 42.0001.5604">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción *</label>
+        <input class="form-input" id="it-desc" placeholder="Descripción del ítem">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Marca</label>
+        <select class="form-input" id="it-marca">
+          <option value="">Seleccionar...</option>
+          <option>Fronius</option><option>Binzel</option><option>Yaskawa</option>
+          <option>ESAB</option><option>Bosch Rexroth</option><option>AirLiquide</option>
+          <option>Festo</option><option>Lincoln</option><option>Tieweld</option>
+        </select>
+      </div>
+    </div>
+    <div style="padding:16px 24px;border-top:1px solid #F0F2F7;display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn btn-ghost" onclick="cerrarModalItem()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarItem()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
@@ -279,7 +311,7 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
         </select>
       </div>
       <div class="toolbar-right">
-        <button class="btn btn-primary">
+        <button class="btn btn-primary" onclick="abrirModalItem()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Nuevo consumible
         </button>
@@ -445,10 +477,10 @@ function renderTabla() {
       <td>${catBadge(item.categoria)}</td>
       <td>
         <div class="actions-cell">
-          <button class="action-btn" title="Ver detalle">
+          <button class="action-btn" title="Ver / Editar" onclick="editarItem('${item.id}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
-          <button class="action-btn" title="Editar">
+          <button class="action-btn" title="Editar" onclick="editarItem('${item.id}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
         </div>
@@ -510,6 +542,60 @@ function _pintarUsuario(){
   } catch(e){}
 }
 _pintarUsuario();
+
+// ===== ALTA / EDICIÓN DE ITEMS =====
+let _editandoItemId = null;
+
+function abrirModalItem(item){
+  _editandoItemId = item ? item.id : null;
+  document.getElementById('modal-item-titulo').textContent = item ? 'Editar ítem' : 'Nuevo consumible';
+  document.getElementById('it-codigo').value = item ? (item.codigo||'') : '';
+  document.getElementById('it-desc').value   = item ? (item.descripcion||'') : '';
+  document.getElementById('it-marca').value  = item ? (item.marca||'') : '';
+  document.getElementById('modal-item').style.display = 'flex';
+}
+
+function cerrarModalItem(){
+  document.getElementById('modal-item').style.display = 'none';
+  _editandoItemId = null;
+}
+
+async function guardarItem(){
+  const desc = document.getElementById('it-desc').value.trim();
+  if(!desc){ alert('La descripción es obligatoria.'); return; }
+  const payload = {
+    codigo:      document.getElementById('it-codigo').value.trim() || null,
+    descripcion: desc,
+    marca:       document.getElementById('it-marca').value || null,
+    categoria:   'consumible'
+  };
+  let error;
+  if(_editandoItemId){
+    const r = await sb.from('items').update(payload).eq('id', _editandoItemId);
+    error = r.error;
+  } else {
+    const r = await sb.from('items').insert(payload);
+    error = r.error;
+  }
+  if(error){ alert('Error: ' + error.message); return; }
+  cerrarModalItem();
+  cargarItems();
+}
+
+document.getElementById('modal-item').addEventListener('click', function(e){
+  if(e.target === this) cerrarModalItem();
+});
+
+function editarItem(id){
+  const item = todosLosItems.find(function(x){ return String(x.id) === String(id); });
+  if(item) abrirModalItem(item);
+}
+async function eliminarItem(id, desc){
+  if(!confirm('¿Eliminar "' + (desc||'este ítem') + '"? No se puede deshacer.')) return;
+  const r = await sb.from('items').delete().eq('id', id);
+  if(r.error){ alert('Error: ' + r.error.message); return; }
+  cargarItems();
+}
 </script>
 </body>
 </html>

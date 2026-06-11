@@ -1,200 +1,95 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Robot-IK — Usuarios</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; color-scheme: light; }
-:root {
-  --brand-blue: #0055A4; --brand-blue-dark: #003D7A; --brand-blue-light: #E8F0FB;
-  --accent: #F4A623; --bg: #F0F2F7; --text-primary: #1A1E2E; --text-secondary: #5A6270;
-  --sidebar-w: 240px; --topbar-h: 64px; --radius: 12px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
-}
-body { font-family: Sora, sans-serif; background: var(--bg); color: var(--text-primary); display: flex; min-height: 100vh; }
-
-/* SIDEBAR */
-.sidebar { width: var(--sidebar-w); min-height: 100vh; background: var(--brand-blue-dark); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; transition: transform .3s; }
-.sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.sidebar-logo img { height: 36px; filter: brightness(0) invert(1); }
-.sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: rgba(255,255,255,0.7); font-size: 0.875rem; cursor: pointer; transition: all .2s; text-decoration: none; border-left: 3px solid transparent; }
-.nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
-.nav-item.active { background: rgba(255,255,255,0.12); color: #fff; border-left-color: var(--accent); }
-.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
-.sidebar-user { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
-.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; flex-shrink: 0; }
-.user-name { font-size: 0.8rem; font-weight: 600; color: #fff; }
-.user-role { font-size: 0.7rem; color: rgba(255,255,255,0.55); }
-
-/* MAIN */
-.main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-
-/* TOPBAR */
-.topbar { height: var(--topbar-h); background: #fff; border-bottom: 1px solid #E2E6EF; display: flex; align-items: center; gap: 16px; padding: 0 28px; position: sticky; top: 0; z-index: 50; }
-.topbar-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
-.topbar-search { flex: 1; max-width: 360px; display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid #D8DCE8; border-radius: 8px; padding: 0 12px; height: 36px; }
-.topbar-search input { border: none; background: none; outline: none; font-family: Sora, sans-serif; font-size: 0.85rem; width: 100%; }
-.topbar-icons { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-.icon-btn { width: 36px; height: 36px; border-radius: 8px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: background .2s; }
-.icon-btn:hover { background: var(--bg); }
-.hamburger { display: none; }
-
-/* CONTENT */
-.content { padding: 28px; flex: 1; max-width: 900px; }
-
-/* TOOLBAR */
-.toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
-.search-box { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #D8DCE8; border-radius: 8px; padding: 0 12px; height: 38px; flex: 1; max-width: 320px; }
-.search-box input { border: none; background: none; outline: none; font-family: Sora, sans-serif; font-size: 0.85rem; width: 100%; }
-.toolbar-right { margin-left: auto; }
-.btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; font-family: Sora, sans-serif; cursor: pointer; border: none; transition: all .2s; white-space: nowrap; }
-.btn-primary { background: var(--brand-blue); color: #fff; }
-.btn-primary:hover { background: var(--brand-blue-dark); }
-.btn-outline { background: #fff; color: var(--brand-blue); border: 1.5px solid var(--brand-blue); }
-.btn-outline:hover { background: var(--brand-blue-light); }
-.btn-ghost { background: none; color: var(--text-secondary); border: 1.5px solid #D8DCE8; }
-.btn-ghost:hover { border-color: var(--brand-blue); color: var(--brand-blue); }
-.btn-danger { background: #FFEBEE; color: #c62828; border: none; }
-.btn-danger:hover { background: #FFCDD2; }
-.btn svg { width: 16px; height: 16px; }
-.btn-sm { padding: 7px 14px; font-size: 0.8rem; }
-
-/* USERS GRID */
-.users-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
-
-/* USER CARD */
-.user-card {
-  background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
-  padding: 20px; display: flex; flex-direction: column; gap: 14px;
-  transition: transform .2s, box-shadow .2s;
-}
-.user-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-.user-card-top { display: flex; align-items: center; gap: 14px; }
-.uc-avatar {
-  width: 48px; height: 48px; border-radius: 50%; background: var(--brand-blue-light);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; font-weight: 700; color: var(--brand-blue); flex-shrink: 0;
-}
-.uc-nombre { font-size: 0.92rem; font-weight: 700; color: var(--text-primary); }
-.uc-email { font-size: 0.76rem; color: var(--text-secondary); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
-.uc-roles { display: flex; gap: 6px; flex-wrap: wrap; }
-.role-badge { padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; }
-.role-admin  { background: var(--brand-blue-light); color: var(--brand-blue); }
-.role-tecnico { background: #FFF3E0; color: #E65100; }
-.uc-actions { display: flex; gap: 8px; padding-top: 4px; border-top: 1px solid #F0F2F7; }
-.uc-actions .btn { flex: 1; justify-content: center; }
-
-/* LOADING / EMPTY */
-.loading-txt { text-align: center; padding: 48px; color: var(--text-secondary); font-size: 0.85rem; grid-column: 1/-1; }
-
-/* MODAL OVERLAY */
-.modal-overlay {
-  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
-  z-index: 200; align-items: center; justify-content: center; padding: 20px;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: #fff; border-radius: 16px; width: 100%; max-width: 480px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden;
-}
-.modal-header { padding: 20px 24px; border-bottom: 1px solid #F0F2F7; display: flex; align-items: center; justify-content: space-between; }
-.modal-title { font-size: 1rem; font-weight: 700; }
-.modal-close { width: 32px; height: 32px; border-radius: 8px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: background .2s; }
-.modal-close:hover { background: var(--bg); }
-.modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-.modal-footer { padding: 16px 24px; border-top: 1px solid #F0F2F7; display: flex; justify-content: flex-end; gap: 10px; }
-
-.form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.4px; }
-.form-input { height: 40px; border: 1.5px solid #D8DCE8; border-radius: 8px; padding: 0 12px; font-family: Sora, sans-serif; font-size: 0.85rem; color: var(--text-primary); background: #fff; outline: none; transition: border .2s; }
-.form-input:focus { border-color: var(--brand-blue); }
-
-/* ROLES CHECKBOXES */
-.roles-group { display: flex; flex-direction: column; gap: 6px; }
-.role-option {
-  display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px;
-  border: 1.5px solid #D8DCE8; border-radius: 8px; cursor: pointer; transition: all .2s;
-}
-.role-option:hover { border-color: var(--brand-blue); background: var(--brand-blue-light); }
-.role-option input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--brand-blue); margin-top: 2px; flex-shrink: 0; }
-.role-option-info strong { font-size: 0.85rem; font-weight: 700; display: block; margin-bottom: 2px; }
-.role-option-info span { font-size: 0.76rem; color: var(--text-secondary); }
-
-/* MOBILE */
-@media (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); }
-  .sidebar.open { transform: translateX(0); }
-  .main { margin-left: 0; }
-  .hamburger { display: flex; }
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
-  .overlay.show { display: block; }
-  .content { padding: 16px; }
-  .users-grid { grid-template-columns: 1fr; }
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;color-scheme:light;}
+:root{--brand-blue:#0055A4;--brand-blue-dark:#003D7A;--brand-blue-light:#E8F0FB;--accent:#F4A623;--bg:#F0F2F7;--text-primary:#1A1E2E;--text-secondary:#5A6270;--sidebar-w:240px;--topbar-h:64px;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,0.08);}
+body{font-family:Sora,sans-serif;background:var(--bg);color:var(--text-primary);display:flex;min-height:100vh;}
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--brand-blue-dark);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:transform .3s;}
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.sidebar-logo img{height:36px;filter:brightness(0) invert(1);}
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:rgba(255,255,255,0.7);font-size:0.875rem;cursor:pointer;transition:all .2s;text-decoration:none;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,0.08);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,0.12);color:#fff;border-left-color:var(--accent);}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;}
+.sidebar-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:10px;}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff;flex-shrink:0;}
+.user-name{font-size:0.8rem;font-weight:600;color:#fff;}
+.user-role{font-size:0.7rem;color:rgba(255,255,255,0.55);}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{height:var(--topbar-h);background:#fff;border-bottom:1px solid #E2E6EF;display:flex;align-items:center;gap:16px;padding:0 28px;position:sticky;top:0;z-index:50;}
+.topbar-title{font-size:1rem;font-weight:600;white-space:nowrap;}
+.hamburger{display:none;width:36px;height:36px;border-radius:8px;border:none;background:none;cursor:pointer;align-items:center;justify-content:center;color:var(--text-secondary);}
+.content{padding:28px;flex:1;max-width:900px;}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;font-family:Sora,sans-serif;cursor:pointer;border:none;transition:all .2s;white-space:nowrap;}
+.btn-primary{background:var(--brand-blue);color:#fff;}
+.btn-primary:hover{background:var(--brand-blue-dark);}
+.btn-outline{background:#fff;color:var(--brand-blue);border:1.5px solid var(--brand-blue);}
+.btn-outline:hover{background:var(--brand-blue-light);}
+.btn-ghost{background:none;color:var(--text-secondary);border:1.5px solid #D8DCE8;}
+.btn-sm{padding:7px 14px;font-size:0.8rem;}
+.btn svg{width:16px;height:16px;}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:22px;flex-wrap:wrap;}
+.search-box{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #D8DCE8;border-radius:8px;padding:0 12px;height:38px;flex:1;max-width:320px;}
+.search-box input{border:none;background:none;outline:none;font-family:Sora,sans-serif;font-size:0.85rem;width:100%;}
+.users-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+.user-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:14px;transition:transform .2s,box-shadow .2s;}
+.user-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.1);}
+.user-card-top{display:flex;align-items:center;gap:14px;}
+.uc-avatar{width:48px;height:48px;border-radius:50%;background:var(--brand-blue-light);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:var(--brand-blue);flex-shrink:0;}
+.uc-nombre{font-size:0.92rem;font-weight:700;}
+.uc-email{font-size:0.76rem;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
+.uc-roles{display:flex;gap:6px;flex-wrap:wrap;}
+.role-badge{padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;}
+.role-admin{background:var(--brand-blue-light);color:var(--brand-blue);}
+.role-tecnico{background:#FFF3E0;color:#E65100;}
+.uc-actions{display:flex;gap:8px;padding-top:4px;border-top:1px solid #F0F2F7;}
+.loading-txt{text-align:center;padding:48px;color:var(--text-secondary);font-size:0.85rem;grid-column:1/-1;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-label{font-size:0.78rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.4px;}
+.form-input{height:40px;border:1.5px solid #D8DCE8;border-radius:8px;padding:0 12px;font-family:Sora,sans-serif;font-size:0.85rem;color:var(--text-primary);background:#fff;outline:none;}
+.form-input:focus{border-color:var(--brand-blue);}
+.role-option{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1.5px solid #D8DCE8;border-radius:8px;cursor:pointer;transition:all .2s;}
+.role-option:hover{border-color:var(--brand-blue);background:var(--brand-blue-light);}
+.role-option input{width:16px;height:16px;accent-color:var(--brand-blue);margin-top:2px;flex-shrink:0;}
+.role-option-info strong{font-size:0.85rem;font-weight:700;display:block;margin-bottom:2px;}
+.role-option-info span{font-size:0.76rem;color:var(--text-secondary);}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:99;}
+.overlay.show{display:block;}
+@media (max-width:768px){.sidebar{transform:translateX(-100%);}.sidebar.open{transform:translateX(0);}.main{margin-left:0;}.hamburger{display:flex;}.content{padding:16px;}.users-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
-<script>
-(function(){
-  // Guard de sesión: si no hay usuario logueado, redirigir al login
-  var _u = sessionStorage.getItem('rik_user');
-  if (!_u) { window.location.replace('p01_login.html'); }
-})();
-</script>
-
-
+<script>(function(){var u=sessionStorage.getItem('rik_user');if(!u){window.location.replace('p01_login.html');}})();</script>
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-<!-- MODAL NUEVO/EDITAR USUARIO -->
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title" id="modal-titulo">Nuevo usuario</span>
-      <button class="modal-close" onclick="cerrarModal()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+<div class="modal-overlay" id="modal-user" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;max-height:90vh;overflow-y:auto;">
+    <div style="padding:20px 24px;border-bottom:1px solid #F0F2F7;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:1rem;font-weight:700;" id="modal-titulo">Nuevo usuario</span>
+      <button onclick="cerrarModal()" style="width:32px;height:32px;border-radius:8px;border:none;background:none;cursor:pointer;color:#5A6270;font-size:1.3rem;">&times;</button>
     </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Nombre completo *</label>
-        <input class="form-input" id="m-nombre" type="text" placeholder="Ej: Juan García">
+    <div style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+      <div id="nota-nuevo" style="background:#FFF8E1;border-radius:8px;padding:12px 14px;font-size:0.8rem;color:#8a6d00;line-height:1.5;">
+        Para que el usuario pueda <strong>iniciar sesión</strong>, primero debe crearse en Supabase → Authentication con el mismo email. Acá se define su nombre, roles y estado.
       </div>
-      <div class="form-group">
-        <label class="form-label">Email *</label>
-        <input class="form-input" id="m-email" type="email" placeholder="usuario@robotik.com">
-      </div>
-      <div class="form-group" id="m-pass-group">
-        <label class="form-label">Contraseña *</label>
-        <input class="form-input" id="m-pass" type="password" placeholder="Mínimo 6 caracteres">
-      </div>
+      <div class="form-group"><label class="form-label">Nombre completo *</label><input class="form-input" id="m-nombre" placeholder="Ej: Juan García"></div>
+      <div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="m-mail" type="email" placeholder="usuario@robot-ik.com"></div>
       <div class="form-group">
         <label class="form-label">Roles</label>
-        <div class="roles-group">
-          <label class="role-option">
-            <input type="checkbox" id="rol-admin">
-            <div class="role-option-info">
-              <strong>Administración</strong>
-              <span>Acceso completo: clientes, robots, catálogo, precios e historial de ventas.</span>
-            </div>
-          </label>
-          <label class="role-option">
-            <input type="checkbox" id="rol-tecnico">
-            <div class="role-option-info">
-              <strong>Técnico</strong>
-              <span>Acceso a robots y consumibles. Sin precios ni historial.</span>
-            </div>
-          </label>
-        </div>
+        <label class="role-option"><input type="checkbox" id="rol-admin"><div class="role-option-info"><strong>Administración</strong><span>Acceso completo: clientes, robots, catálogo, precios.</span></div></label>
+        <label class="role-option"><input type="checkbox" id="rol-tecnico"><div class="role-option-info"><strong>Técnico</strong><span>Acceso a robots y consumibles. Sin precios.</span></div></label>
       </div>
+      <label class="role-option" style="border:none;padding:0"><input type="checkbox" id="m-activo" checked><div class="role-option-info"><strong>Usuario activo</strong><span>Puede acceder al sistema.</span></div></label>
     </div>
-    <div class="modal-footer">
+    <div style="padding:16px 24px;border-top:1px solid #F0F2F7;display:flex;justify-content:flex-end;gap:10px;">
       <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="guardarUsuario()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Guardar
-      </button>
+      <button class="btn btn-primary" onclick="guardarUsuario()">Guardar</button>
     </div>
   </div>
 </div>
@@ -213,215 +108,129 @@ body { font-family: Sora, sans-serif; background: var(--bg); color: var(--text-p
     <div class="user-avatar" id="sb-iniciales">FA</div>
     <div><div class="user-name" id="sb-nombre">Usuario</div><div class="user-role" id="sb-rol">—</div></div>
   </div>
-  <button onclick="cerrarSesion()" style="margin:0 16px 16px;padding:9px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);border:none;border-radius:8px;font-family:Sora,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+  <button onclick="cerrarSesion()" style="margin:0 16px 16px;padding:9px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);border:none;border-radius:8px;font-family:Sora,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     Cerrar sesión
   </button>
 </aside>
 
 <div class="main">
-  <header class="topbar">
-    <button class="icon-btn hamburger" onclick="toggleSidebar()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <span class="topbar-title">Usuarios</span>
-    <div class="topbar-search">
+<header class="topbar">
+  <button class="hamburger" onclick="toggleSidebar()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  <span class="topbar-title">Usuarios</span>
+</header>
+<div class="content">
+  <div class="toolbar">
+    <div class="search-box">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      <input type="text" placeholder="Buscar...">
+      <input type="text" id="search-input" placeholder="Buscar usuario..." oninput="filtrar()">
     </div>
-    <div class="topbar-icons">
-      <button class="icon-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></button>
-      <button class="icon-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
-    </div>
-  </header>
-
-  <div class="content">
-
-    <div class="toolbar">
-      <div class="search-box">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="text" id="search-input" placeholder="Buscar usuario..." oninput="filtrar()">
-      </div>
-      <div class="toolbar-right">
-        <button class="btn btn-primary" onclick="abrirModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Nuevo usuario
-        </button>
-      </div>
-    </div>
-
-    <div class="users-grid" id="users-grid">
-      <div class="loading-txt">Cargando usuarios...</div>
-    </div>
-
+    <button class="btn btn-primary" style="margin-left:auto" onclick="abrirModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo usuario
+    </button>
   </div>
+  <div class="users-grid" id="users-grid"><div class="loading-txt">Cargando...</div></div>
+</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const sb = supabase.createClient("https://bnjmorxjibwvwzadzrdm.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuam1vcnhqaWJ3dnd6YWR6cmRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NzU1MDEsImV4cCI6MjA5NjQ1MTUwMX0.sMNUpbVPKqJf0gDVS6LimaDDfMsYi-Im6kVnedFIfN4", { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
 
-let todos = [], filtrados = [];
-let editandoId = null;
+const sb = supabase.createClient("https://bnjmorxjibwvwzadzrdm.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuam1vcnhqaWJ3dnd6YWR6cmRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NzU1MDEsImV4cCI6MjA5NjQ1MTUwMX0.sMNUpbVPKqJf0gDVS6LimaDDfMsYi-Im6kVnedFIfN4", { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
 
-function iniciales(nombre) {
-  if (!nombre) return '?';
-  return nombre.trim().split(/\s+/).slice(0, 2).map(p => p[0].toUpperCase()).join('');
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); var ov=document.getElementById('overlay'); if(ov) ov.classList.toggle('show'); }
+function cerrarSesion(){ sessionStorage.removeItem('rik_user'); try{localStorage.clear();}catch(e){} window.location.replace('p01_login.html'); }
+function _pintarUsuario(){
+  try{ var u=JSON.parse(sessionStorage.getItem('rik_user')||'{}');
+    if(u.nombre){
+      var ini=u.nombre.trim().split(/\s+/).slice(0,2).map(function(p){return p[0].toUpperCase();}).join('');
+      var a=document.getElementById('sb-iniciales'); if(a)a.textContent=ini;
+      var n=document.getElementById('sb-nombre'); if(n)n.textContent=u.nombre;
+      var r=document.getElementById('sb-rol'); if(r){var rr=[];if(u.rol_admin)rr.push('Administración');if(u.rol_tecnico)rr.push('Técnico');r.textContent=rr.join(' · ')||'Sin rol';}
+    }
+  }catch(e){}
 }
 
-function renderCards(lista) {
-  const grid = document.getElementById('users-grid');
-  if (!lista.length) {
-    grid.innerHTML = '<div class="loading-txt">No se encontraron usuarios.</div>';
-    return;
-  }
-  grid.innerHTML = lista.map(u => {
-    const roles = u.roles || [];
-    const esAdmin   = roles.includes('administracion');
-    const esTecnico = roles.includes('tecnico');
-    return `
-      <div class="user-card">
-        <div class="user-card-top">
-          <div class="uc-avatar">${iniciales(u.nombre)}</div>
-          <div style="min-width:0">
-            <div class="uc-nombre">${u.nombre || '—'}</div>
-            <div class="uc-email" title="${u.email || ''}">${u.email || '—'}</div>
-          </div>
-        </div>
-        <div class="uc-roles">
-          ${esAdmin   ? '<span class="role-badge role-admin">Administración</span>' : ''}
-          ${esTecnico ? '<span class="role-badge role-tecnico">Técnico</span>' : ''}
-          ${!esAdmin && !esTecnico ? '<span class="role-badge" style="background:#eee;color:#666">Sin rol</span>' : ''}
-        </div>
-        <div class="uc-actions">
-          <button class="btn btn-outline btn-sm" onclick="editarUsuario('${u.id}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Editar
-          </button>
-          <button class="btn btn-danger btn-sm" onclick="eliminarUsuario('${u.id}', '${(u.nombre||'').replace(/'/g,"\'")}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
-            Eliminar
-          </button>
-        </div>
-      </div>`;
+let todos = [], editandoId = null;
+
+function iniciales(s){ if(!s) return '?'; return s.trim().split(/\s+/).slice(0,2).map(function(p){return p[0].toUpperCase();}).join(''); }
+
+function renderCards(lista){
+  const g = document.getElementById('users-grid');
+  if(!lista.length){ g.innerHTML='<div class="loading-txt">No hay usuarios cargados.</div>'; return; }
+  g.innerHTML = lista.map(function(u){
+    var badges = '';
+    if(u.rol_admin)   badges += '<span class="role-badge role-admin">Administración</span>';
+    if(u.rol_tecnico) badges += '<span class="role-badge role-tecnico">Técnico</span>';
+    if(!u.rol_admin && !u.rol_tecnico) badges = '<span class="role-badge" style="background:#eee;color:#666">Sin rol</span>';
+    var inactivo = u.activo===false ? '<span class="role-badge" style="background:#FFEBEE;color:#c62828">Inactivo</span>' : '';
+    return '<div class="user-card">'+
+      '<div class="user-card-top">'+
+        '<div class="uc-avatar">'+iniciales(u.nombre)+'</div>'+
+        '<div style="min-width:0;flex:1"><div class="uc-nombre">'+(u.nombre||'-')+'</div>'+
+        '<div class="uc-email" title="'+(u.mail||'')+'">'+(u.mail||'-')+'</div></div>'+
+      '</div>'+
+      '<div class="uc-roles">'+badges+inactivo+'</div>'+
+      '<div class="uc-actions">'+
+        '<button class="btn btn-outline btn-sm" style="flex:1;justify-content:center" onclick="editarUsuario(\''+u.id+'\')">Editar</button>'+
+      '</div>'+
+    '</div>';
   }).join('');
 }
 
-async function cargarUsuarios() {
-  const { data, error } = await sb.from('usuarios').select('*').order('nombre');
-  if (error) {
-    document.getElementById('users-grid').innerHTML =
-      '<div class="loading-txt" style="color:#e53935">Error: ' + error.message + '</div>';
-    return;
-  }
-  todos = data || [];
-  filtrados = [...todos];
-  renderCards(filtrados);
+async function cargar(){
+  const res = await sb.from('usuarios').select('*').order('nombre');
+  if(res.error){ document.getElementById('users-grid').innerHTML='<div class="loading-txt" style="color:#e53935">Error: '+res.error.message+'</div>'; return; }
+  todos = res.data || [];
+  filtrar();
 }
 
-function filtrar() {
+function filtrar(){
   const q = document.getElementById('search-input').value.toLowerCase().trim();
-  filtrados = !q ? [...todos] : todos.filter(u =>
-    (u.nombre || '').toLowerCase().includes(q) ||
-    (u.email  || '').toLowerCase().includes(q)
-  );
-  renderCards(filtrados);
+  renderCards(!q ? todos : todos.filter(function(u){ return (u.nombre||'').toLowerCase().includes(q) || (u.mail||'').toLowerCase().includes(q); }));
 }
 
-// ── MODAL ────────────────────────────────────────────────────────
-function abrirModal(u) {
+function abrirModal(u){
   editandoId = u ? u.id : null;
   document.getElementById('modal-titulo').textContent = u ? 'Editar usuario' : 'Nuevo usuario';
-  document.getElementById('m-nombre').value = u ? (u.nombre || '') : '';
-  document.getElementById('m-email').value  = u ? (u.email  || '') : '';
-  document.getElementById('m-pass').value   = '';
-  document.getElementById('m-pass-group').style.display = u ? 'none' : '';
-  const roles = u ? (u.roles || []) : [];
-  document.getElementById('rol-admin').checked   = roles.includes('administracion');
-  document.getElementById('rol-tecnico').checked = roles.includes('tecnico');
-  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('m-nombre').value = u ? (u.nombre||'') : '';
+  document.getElementById('m-mail').value   = u ? (u.mail||'') : '';
+  document.getElementById('rol-admin').checked   = u ? !!u.rol_admin : false;
+  document.getElementById('rol-tecnico').checked = u ? !!u.rol_tecnico : false;
+  document.getElementById('m-activo').checked    = u ? (u.activo!==false) : true;
+  document.getElementById('nota-nuevo').style.display = u ? 'none' : 'block';
+  document.getElementById('modal-user').style.display = 'flex';
 }
+function cerrarModal(){ document.getElementById('modal-user').style.display='none'; editandoId=null; }
+function editarUsuario(id){ var u=todos.find(function(x){return String(x.id)===String(id);}); if(u) abrirModal(u); }
 
-function cerrarModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-  editandoId = null;
-}
-
-async function guardarUsuario() {
+async function guardarUsuario(){
   const nombre = document.getElementById('m-nombre').value.trim();
-  const email  = document.getElementById('m-email').value.trim();
-  const pass   = document.getElementById('m-pass').value.trim();
-  const roles  = [];
-  if (document.getElementById('rol-admin').checked)   roles.push('administracion');
-  if (document.getElementById('rol-tecnico').checked) roles.push('tecnico');
-
-  if (!nombre || !email) { alert('Nombre y email son obligatorios.'); return; }
-  if (!editandoId && !pass) { alert('La contraseña es obligatoria al crear un usuario.'); return; }
-
-  const payload = { nombre, email, roles };
-
+  const mail   = document.getElementById('m-mail').value.trim();
+  if(!nombre || !mail){ alert('Nombre y email son obligatorios.'); return; }
+  const payload = {
+    nombre: nombre,
+    mail: mail,
+    rol_admin:   document.getElementById('rol-admin').checked,
+    rol_tecnico: document.getElementById('rol-tecnico').checked,
+    activo:      document.getElementById('m-activo').checked
+  };
   let error;
-  if (editandoId) {
-    ({ error } = await sb.from('usuarios').update(payload).eq('id', editandoId));
+  if(editandoId){
+    const r = await sb.from('usuarios').update(payload).eq('id', editandoId);
+    error = r.error;
   } else {
-    const hash = btoa(pass); // placeholder — en producción usar hash real
-    ({ error } = await sb.from('usuarios').insert({ ...payload, password_hash: hash }));
+    const r = await sb.from('usuarios').insert(payload);
+    error = r.error;
   }
-
-  if (error) { alert('Error: ' + error.message); return; }
+  if(error){ alert('Error: ' + error.message); return; }
   cerrarModal();
-  cargarUsuarios();
+  cargar();
 }
 
-async function editarUsuario(id) {
-  const u = todos.find(x => x.id === id);
-  if (u) abrirModal(u);
-}
-
-async function eliminarUsuario(id, nombre) {
-  if (!confirm('¿Eliminar al usuario ' + nombre + '? Esta acción no se puede deshacer.')) return;
-  const { error } = await sb.from('usuarios').delete().eq('id', id);
-  if (error) { alert('Error: ' + error.message); return; }
-  cargarUsuarios();
-}
-
-// Cerrar modal al click fuera
-document.getElementById('modal-overlay').addEventListener('click', function(e) {
-  if (e.target === this) cerrarModal();
-});
-
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  var ov = document.getElementById('overlay');
-  if (ov) ov.classList.toggle('show');
-}
-
-cargarUsuarios();
-
-function cerrarSesion(){
-  sessionStorage.removeItem('rik_user');
-  try { localStorage.clear(); } catch(e){}
-  window.location.replace('p01_login.html');
-}
-function _pintarUsuario(){
-  try {
-    var u = JSON.parse(sessionStorage.getItem('rik_user')||'{}');
-    if(u.nombre){
-      var ini = u.nombre.trim().split(/\s+/).slice(0,2).map(function(p){return p[0].toUpperCase();}).join('');
-      var avEl = document.getElementById('sb-iniciales'); if(avEl) avEl.textContent = ini;
-      var nmEl = document.getElementById('sb-nombre'); if(nmEl) nmEl.textContent = u.nombre;
-      var rlEl = document.getElementById('sb-rol');
-      if(rlEl){
-        var roles = [];
-        if(u.rol_admin) roles.push('Administración');
-        if(u.rol_tecnico) roles.push('Técnico');
-        rlEl.textContent = roles.join(' · ') || 'Sin rol';
-      }
-    }
-  } catch(e){}
-}
+document.getElementById('modal-user').addEventListener('click', function(e){ if(e.target===this) cerrarModal(); });
 _pintarUsuario();
+cargar();
+
 </script>
-</body>
-</html>
+</body></html>
