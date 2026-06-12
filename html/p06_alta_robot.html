@@ -264,6 +264,7 @@ function toggleSidebar() {
 
 const clienteId = getParam('cliente_id');
 const clienteNombre = decodeURIComponent(getParam('cliente_nombre')||'');
+const robotId = getParam('robot_id');  // si existe, es modo edición
 let pasoActual = 1;
 let itemsCons = [], itemsRep = [];
 let selCons = new Set(), selRep = new Set();
@@ -438,16 +439,29 @@ async function guardarRobot(){
     ubicacion: document.getElementById('f-ubic').value.trim() || null,
     activo: true
   };
-  const r = await sb.from('robots').insert(robotPayload).select().single();
-  if(r.error){ alert('Error al guardar robot: ' + r.error.message); return; }
+  var idRobot;
+  if(robotId){
+    // MODO EDICIÓN: actualizar robot existente
+    const r = await sb.from('robots').update(robotPayload).eq('id', robotId).select().single();
+    if(r.error){ alert('Error al actualizar robot: ' + r.error.message); return; }
+    idRobot = robotId;
+    // Borrar el conjunto anterior y volver a cargarlo
+    const del = await sb.from('robot_items').delete().eq('robot_id', robotId);
+    if(del.error){ console.warn('Error limpiando conjunto:', del.error.message); }
+  } else {
+    // MODO ALTA: crear robot nuevo
+    const r = await sb.from('robots').insert(robotPayload).select().single();
+    if(r.error){ alert('Error al guardar robot: ' + r.error.message); return; }
+    idRobot = r.data.id;
+  }
   const robotItems = [];
-  selCons.forEach(function(item_id){ robotItems.push({ robot_id: r.data.id, item_id: item_id }); });
-  selRep.forEach(function(item_id){ robotItems.push({ robot_id: r.data.id, item_id: item_id }); });
+  selCons.forEach(function(item_id){ robotItems.push({ robot_id: idRobot, item_id: item_id }); });
+  selRep.forEach(function(item_id){ robotItems.push({ robot_id: idRobot, item_id: item_id }); });
   if(robotItems.length>0){
     const ri = await sb.from('robot_items').insert(robotItems);
     if(ri.error) console.warn('robot_items:', ri.error.message);
   }
-  location.href = 'p03_ficha_cliente.html?id=' + clienteId;
+  location.href = robotId ? ('p07_ficha_robot.html?id=' + robotId + '&cliente_id=' + clienteId) : ('p03_ficha_cliente.html?id=' + clienteId);
 }
 
 // ===== INIT =====
@@ -456,7 +470,48 @@ document.getElementById('cli-av').textContent = iniciales(clienteNombre);
 document.getElementById('bc-cliente').textContent = clienteNombre || 'Cliente';
 document.getElementById('modal-modelo').addEventListener('click', function(e){ if(e.target===this) cerrarModalModelo(); });
 document.getElementById('nuevo-modelo-nombre').addEventListener('keydown', function(e){ if(e.key==='Enter') guardarNuevoModelo(); });
-cargarModelos();
+
+async function cargarRobotParaEditar(){
+  if(!robotId) return;
+  // Cambiar títulos a modo edición
+  var titEl = document.querySelector('.topbar-title'); if(titEl) titEl.textContent = 'Editar Robot';
+  var sub = document.querySelector('.cliente-mini div div:last-child'); if(sub) sub.textContent = 'Editando robot';
+  // Cargar datos del robot
+  var rr = await sb.from('robots').select('*, clientes(nombre)').eq('id', robotId).single();
+  if(rr.error || !rr.data){ alert('No se pudo cargar el robot.'); return; }
+  var robot = rr.data;
+  // Esperar a que los modelos estén cargados antes de setear el valor
+  await cargarModelos();
+  document.getElementById('f-modelo').value = robot.modelo || '';
+  document.getElementById('f-ctrl').value   = robot.controlador || '';
+  document.getElementById('f-serie').value  = robot.serial || '';
+  document.getElementById('f-aplic').value  = robot.aplicacion || '';
+  document.getElementById('f-ubic').value   = robot.ubicacion || '';
+  // Nombre del cliente en el header
+  if(robot.clientes){
+    document.getElementById('cli-mini-nombre').textContent = robot.clientes.nombre;
+    document.getElementById('cli-av').textContent = iniciales(robot.clientes.nombre);
+    document.getElementById('bc-cliente').textContent = robot.clientes.nombre;
+  }
+  // Cargar conjunto actual (consumibles + repuestos ya seleccionados)
+  var ri = await sb.from('robot_items').select('item_id, items(categoria)').eq('robot_id', robotId);
+  if(!ri.error && ri.data){
+    ri.data.forEach(function(row){
+      if(!row.items) return;
+      if(row.items.categoria === 'consumible') selCons.add(row.item_id);
+      else if(row.items.categoria === 'repuesto') selRep.add(row.item_id);
+    });
+  }
+}
+
+if(robotId){
+  cargarRobotParaEditar();
+  // Cambiar texto del botón guardar
+  setTimeout(function(){
+    var btns = document.querySelectorAll('button');
+    btns.forEach(function(b){ if(b.textContent.trim().indexOf('Guardar robot')>=0){ b.innerHTML = b.innerHTML.replace('Guardar robot','Actualizar robot'); } });
+  }, 200);
+} else { cargarModelos(); }
 
 
 function cerrarSesion(){
