@@ -76,6 +76,17 @@ body{font-family:Sora,sans-serif;background:var(--bg);color:var(--text-primary);
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:99;}
 .overlay.show{display:block;}
 @media (max-width:768px){.sidebar{transform:translateX(-100%);}.sidebar.open{transform:translateX(0);}.main{margin-left:0;}.hamburger{display:flex;}.content{padding:16px;}.robot-header-top{padding:16px;}.robot-header-body{padding:16px;gap:16px;}.tab-panel{padding:16px;}}
+
+.precio-wrap{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;margin-left:10px;min-width:90px;}
+.precio-final{font-size:0.88rem;font-weight:700;font-family:"JetBrains Mono",monospace;color:var(--brand-blue);}
+.precio-lista{font-size:0.68rem;color:var(--text-secondary);text-decoration:line-through;margin-top:1px;}
+.precio-sin{font-size:0.7rem;color:#bbb;font-style:italic;}
+.total-conjunto{background:var(--brand-blue-light);border-radius:10px;padding:14px 18px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;}
+.total-label{font-size:0.82rem;font-weight:600;color:var(--brand-blue-dark);}
+.total-valor{font-size:1.1rem;font-weight:700;font-family:"JetBrains Mono",monospace;color:var(--brand-blue);}
+.ajuste-badge{display:inline-block;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
+.ajuste-desc{background:#E8F5E9;color:#2E7D32;}
+.ajuste-rec{background:#FFF3E0;color:#E65100;}
 </style>
 </head>
 <body>
@@ -182,6 +193,8 @@ function toggleSidebar() {
 
 const robotId    = getParam('id');
 const clienteId  = getParam('cliente_id');
+var _esAdmin = false;
+var _ajusteCliente = 0;
 
 function marcaTag(m){
   var ml=(m||'').toLowerCase();
@@ -214,11 +227,33 @@ function inferirTipo(d){
   return 'Otros accesorios';
 }
 
+function fmtPrecio(n){
+  if(n==null || isNaN(n)) return '-';
+  return '$' + Number(n).toLocaleString('es-AR',{minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function bloquePrecio(item){
+  // Solo admin ve precios
+  if(!_esAdmin) return '';
+  var datos = item.items || item;
+  var lista = datos.precio_venta;
+  if(lista==null || isNaN(lista)) return '<div class="precio-wrap"><span class="precio-sin">Sin precio</span></div>';
+  var final = lista * (1 + _ajusteCliente/100);
+  var hayaAjuste = _ajusteCliente !== 0;
+  if(!hayaAjuste){
+    return '<div class="precio-wrap"><span class="precio-final">'+fmtPrecio(lista)+'</span></div>';
+  }
+  return '<div class="precio-wrap">'+
+    '<span class="precio-final">'+fmtPrecio(final)+'</span>'+
+    '<span class="precio-lista">Lista: '+fmtPrecio(lista)+'</span>'+
+  '</div>';
+}
+
 function renderGrupos(items){
   if(!items.length) return '<div class="empty-panel"><p>No hay items asignados.</p></div>';
   var grupos = {};
   items.forEach(function(item){
-    var t = inferirTipo(item.descripcion);
+    var t = inferirTipo(item.items?item.items.descripcion:item.descripcion);
     if(!grupos[t]) grupos[t]=[];
     grupos[t].push(item);
   });
@@ -233,6 +268,7 @@ function renderGrupos(items){
               '<div class="item-card-cod">'+(item.items?item.items.codigo:item.codigo||'')+'</div>'+
             '</div>'+
             marcaTag(item.items?item.items.marca:item.marca)+
+            bloquePrecio(item)+
           '</div>';
         }).join('')+
       '</div>'+
@@ -244,10 +280,13 @@ async function cargar(){
   if(!robotId){ location.href='p08_lista_clientes.html'; return; }
 
   // Cargar datos del robot
-  var rr = await sb.from('robots').select('*, clientes(nombre,ciudad)').eq('id', robotId).single();
+  var rr = await sb.from('robots').select('*, clientes(nombre,ciudad,ajuste_precio)').eq('id', robotId).single();
   if(rr.error || !rr.data){ alert('Robot no encontrado.'); history.back(); return; }
   var robot = rr.data;
   var cliente = robot.clientes || {};
+  var _u = JSON.parse(sessionStorage.getItem('rik_user')||'{}');
+  _esAdmin = !!_u.rol_admin;
+  _ajusteCliente = (cliente.ajuste_precio != null) ? Number(cliente.ajuste_precio) : 0;
 
   // Header
   document.getElementById('bc-cliente').textContent   = cliente.nombre || 'Cliente';
@@ -266,7 +305,7 @@ async function cargar(){
   document.getElementById('btn-editar').style.display = '';
 
   // Cargar robot_items con join a items
-  var ri = await sb.from('robot_items').select('*, items(id,descripcion,codigo,marca,categoria)').eq('robot_id', robotId);
+  var ri = await sb.from('robot_items').select('*, items(id,descripcion,codigo,marca,categoria,precio_venta)').eq('robot_id', robotId);
   if(ri.error){ console.error(ri.error); return; }
   var todos = ri.data || [];
 
@@ -275,8 +314,26 @@ async function cargar(){
 
   document.getElementById('cnt-cons').textContent = cons.length;
   document.getElementById('cnt-rep').textContent  = rep.length;
-  document.getElementById('cons-content').innerHTML = renderGrupos(cons);
-  document.getElementById('rep-content').innerHTML  = renderGrupos(rep);
+  document.getElementById('cons-content').innerHTML = renderGrupos(cons) + bloqueTotal(cons);
+  document.getElementById('rep-content').innerHTML  = renderGrupos(rep) + bloqueTotal(rep);
+}
+
+function bloqueTotal(items){
+  if(!_esAdmin || !items.length) return '';
+  var totalLista = 0, hayPrecio = false;
+  items.forEach(function(item){
+    var d = item.items || item;
+    if(d.precio_venta != null && !isNaN(d.precio_venta)){ totalLista += Number(d.precio_venta); hayPrecio = true; }
+  });
+  if(!hayPrecio) return '';
+  var totalFinal = totalLista * (1 + _ajusteCliente/100);
+  var badge = '';
+  if(_ajusteCliente < 0) badge = '<span class="ajuste-badge ajuste-desc">'+_ajusteCliente+'%</span>';
+  else if(_ajusteCliente > 0) badge = '<span class="ajuste-badge ajuste-rec">+'+_ajusteCliente+'%</span>';
+  return '<div class="total-conjunto">'+
+    '<span class="total-label">Total estimado'+badge+'</span>'+
+    '<span class="total-valor">'+fmtPrecio(totalFinal)+'</span>'+
+  '</div>';
 }
 
 function cambiarTab(id, btn){

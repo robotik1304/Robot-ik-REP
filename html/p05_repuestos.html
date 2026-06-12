@@ -145,6 +145,10 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
         <input class="form-input" id="it-marca" list="lista-marcas" placeholder="Escribí o elegí una marca" autocomplete="off">
         <datalist id="lista-marcas"><option value="Fronius"><option value="Binzel"><option value="Yaskawa"><option value="ESAB"><option value="Bosch Rexroth"><option value="AirLiquide"><option value="Festo"><option value="Lincoln"><option value="Tieweld"></datalist>
       </div>
+      <div class="form-group" id="grupo-precio" style="display:none">
+        <label class="form-label">Precio de lista ($)</label>
+        <input class="form-input" id="it-precio" type="number" step="0.01" placeholder="0.00">
+      </div>
     </div>
     <div style="padding:16px 24px;border-top:1px solid #F0F2F7;display:flex;justify-content:flex-end;gap:10px;">
       <button class="btn btn-ghost" onclick="cerrarModalItem()">Cancelar</button>
@@ -415,6 +419,9 @@ function abrirModalItem(item){
   document.getElementById('it-codigo').value = item ? (item.codigo||'') : '';
   document.getElementById('it-desc').value   = item ? (item.descripcion||'') : '';
   document.getElementById('it-marca').value  = item ? (item.marca||'') : '';
+  document.getElementById('it-precio').value = (item && item.precio_venta != null) ? item.precio_venta : '';
+  var _u = JSON.parse(sessionStorage.getItem('rik_user')||'{}');
+  document.getElementById('grupo-precio').style.display = _u.rol_admin ? 'flex' : 'none';
   document.getElementById('modal-item').style.display = 'flex';
 }
 
@@ -430,6 +437,7 @@ async function guardarItem(){
     codigo:      document.getElementById('it-codigo').value.trim() || null,
     descripcion: desc,
     marca:       document.getElementById('it-marca').value || null,
+    precio_venta: parseFloat(document.getElementById('it-precio').value) || null,
     categoria:   'repuesto'
   };
   let error;
