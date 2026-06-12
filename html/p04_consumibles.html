@@ -234,8 +234,14 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
         <datalist id="lista-marcas"><option value="Fronius"><option value="Binzel"><option value="Yaskawa"><option value="ESAB"><option value="Bosch Rexroth"><option value="AirLiquide"><option value="Festo"><option value="Lincoln"><option value="Tieweld"></datalist>
       </div>
       <div class="form-group" id="grupo-precio" style="display:none">
-        <label class="form-label">Precio de lista ($)</label>
-        <input class="form-input" id="it-precio" type="number" step="0.01" placeholder="0.00">
+        <label class="form-label">Precio de lista</label>
+        <div style="display:flex;gap:8px">
+          <select class="form-input" id="it-moneda" style="max-width:90px">
+            <option value="USD">US$</option>
+            <option value="EUR">€</option>
+          </select>
+          <input class="form-input" id="it-precio" type="number" step="0.01" placeholder="0.00" style="flex:1">
+        </div>
       </div>
     </div>
     <div style="padding:16px 24px;border-top:1px solid #F0F2F7;display:flex;justify-content:flex-end;gap:10px;">
@@ -374,11 +380,12 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
               <th>Descripción</th>
               <th>Marca</th>
               <th>Categoría</th>
+              <th class="th-precio" style="display:none">Precio lista</th>
               <th></th>
             </tr>
           </thead>
           <tbody id="tabla-body">
-            <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-secondary)">Cargando...</td></tr>
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-secondary)">Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -420,7 +427,7 @@ async function cargarItems() {
   const { data, error } = await sb.from('items').select('*').order('marca').order('descripcion');
   if (error) {
     document.getElementById('tabla-body').innerHTML =
-      '<tr><td colspan="5" style="text-align:center;padding:40px;color:#e53935">Error al cargar: ' + error.message + '</td></tr>';
+      '<tr><td colspan="6" style="text-align:center;padding:40px;color:#e53935">Error al cargar: ' + error.message + '</td></tr>';
     return;
   }
   todosLosItems = data || [];
@@ -464,7 +471,7 @@ function renderTabla() {
 
   if (pagina.length === 0) {
     document.getElementById('tabla-body').innerHTML =
-      '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-secondary)">No se encontraron consumibles.</td></tr>';
+      '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-secondary)">No se encontraron consumibles.</td></tr>';
     document.getElementById('pag-btns').innerHTML = '';
     return;
   }
@@ -475,6 +482,7 @@ function renderTabla() {
       <td class="desc-cell" title="${item.descripcion || ''}">${item.descripcion || '—'}</td>
       <td>${marcaTag(item.marca)}</td>
       <td>${catBadge(item.categoria)}</td>
+      <td class="td-precio" style="display:none">${fmtPrecioLista(item)}</td>
       <td>
         <div class="actions-cell">
           <button class="action-btn" title="Ver / Editar" onclick="editarItem('${item.id}')">
@@ -501,6 +509,7 @@ function renderTabla() {
   }
   btns += `<button class="page-btn" onclick="irPagina(${paginaActual+1})" ${paginaActual===totalPags?'disabled':''}>›</button>`;
   document.getElementById('pag-btns').innerHTML = btns;
+  _toggleColPrecio();
 }
 
 function irPagina(p) {
@@ -553,6 +562,7 @@ function abrirModalItem(item){
   document.getElementById('it-desc').value   = item ? (item.descripcion||'') : '';
   document.getElementById('it-marca').value  = item ? (item.marca||'') : '';
   document.getElementById('it-precio').value = (item && item.precio_venta != null) ? item.precio_venta : '';
+  document.getElementById('it-moneda').value = (item && item.moneda) ? item.moneda : 'USD';
   var _u = JSON.parse(sessionStorage.getItem('rik_user')||'{}');
   document.getElementById('grupo-precio').style.display = _u.rol_admin ? 'flex' : 'none';
   document.getElementById('modal-item').style.display = 'flex';
@@ -571,6 +581,7 @@ async function guardarItem(){
     descripcion: desc,
     marca:       document.getElementById('it-marca').value || null,
     precio_venta: parseFloat(document.getElementById('it-precio').value) || null,
+    moneda:      document.getElementById('it-moneda').value || 'USD',
     categoria:   'consumible'
   };
   let error;
@@ -599,6 +610,11 @@ async function eliminarItem(id, desc){
   const r = await sb.from('items').delete().eq('id', id);
   if(r.error){ alert('Error: ' + r.error.message); return; }
   cargarItems();
+}
+
+function _toggleColPrecio(){
+  var mostrar = _esAdminCat();
+  document.querySelectorAll('.th-precio, .td-precio').forEach(function(el){ el.style.display = mostrar ? '' : 'none'; });
 }
 </script>
 </body>

@@ -227,25 +227,25 @@ function inferirTipo(d){
   return 'Otros accesorios';
 }
 
-function fmtPrecio(n){
+function _simbolo(m){ return m==='EUR' ? '€' : 'US$'; }
+function fmtPrecio(n, moneda){
   if(n==null || isNaN(n)) return '-';
-  return '$' + Number(n).toLocaleString('es-AR',{minimumFractionDigits:2, maximumFractionDigits:2});
+  return _simbolo(moneda) + ' ' + Number(n).toLocaleString('es-AR',{minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
 function bloquePrecio(item){
-  // Solo admin ve precios
   if(!_esAdmin) return '';
   var datos = item.items || item;
   var lista = datos.precio_venta;
+  var moneda = datos.moneda || 'USD';
   if(lista==null || isNaN(lista)) return '<div class="precio-wrap"><span class="precio-sin">Sin precio</span></div>';
   var final = lista * (1 + _ajusteCliente/100);
-  var hayaAjuste = _ajusteCliente !== 0;
-  if(!hayaAjuste){
-    return '<div class="precio-wrap"><span class="precio-final">'+fmtPrecio(lista)+'</span></div>';
+  if(_ajusteCliente === 0){
+    return '<div class="precio-wrap"><span class="precio-final">'+fmtPrecio(lista, moneda)+'</span></div>';
   }
   return '<div class="precio-wrap">'+
-    '<span class="precio-final">'+fmtPrecio(final)+'</span>'+
-    '<span class="precio-lista">Lista: '+fmtPrecio(lista)+'</span>'+
+    '<span class="precio-final">'+fmtPrecio(final, moneda)+'</span>'+
+    '<span class="precio-lista">Lista: '+fmtPrecio(lista, moneda)+'</span>'+
   '</div>';
 }
 
@@ -305,7 +305,7 @@ async function cargar(){
   document.getElementById('btn-editar').style.display = '';
 
   // Cargar robot_items con join a items
-  var ri = await sb.from('robot_items').select('*, items(id,descripcion,codigo,marca,categoria,precio_venta)').eq('robot_id', robotId);
+  var ri = await sb.from('robot_items').select('*, items(id,descripcion,codigo,marca,categoria,precio_venta,moneda)').eq('robot_id', robotId);
   if(ri.error){ console.error(ri.error); return; }
   var todos = ri.data || [];
 
@@ -320,19 +320,26 @@ async function cargar(){
 
 function bloqueTotal(items){
   if(!_esAdmin || !items.length) return '';
-  var totalLista = 0, hayPrecio = false;
+  var totales = {};  // por moneda
   items.forEach(function(item){
     var d = item.items || item;
-    if(d.precio_venta != null && !isNaN(d.precio_venta)){ totalLista += Number(d.precio_venta); hayPrecio = true; }
+    if(d.precio_venta != null && !isNaN(d.precio_venta)){
+      var m = d.moneda || 'USD';
+      totales[m] = (totales[m]||0) + Number(d.precio_venta);
+    }
   });
-  if(!hayPrecio) return '';
-  var totalFinal = totalLista * (1 + _ajusteCliente/100);
+  var monedas = Object.keys(totales);
+  if(!monedas.length) return '';
   var badge = '';
   if(_ajusteCliente < 0) badge = '<span class="ajuste-badge ajuste-desc">'+_ajusteCliente+'%</span>';
   else if(_ajusteCliente > 0) badge = '<span class="ajuste-badge ajuste-rec">+'+_ajusteCliente+'%</span>';
+  var valores = monedas.map(function(m){
+    var final = totales[m] * (1 + _ajusteCliente/100);
+    return fmtPrecio(final, m);
+  }).join('  +  ');
   return '<div class="total-conjunto">'+
     '<span class="total-label">Total estimado'+badge+'</span>'+
-    '<span class="total-valor">'+fmtPrecio(totalFinal)+'</span>'+
+    '<span class="total-valor">'+valores+'</span>'+
   '</div>';
 }
 
