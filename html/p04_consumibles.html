@@ -522,6 +522,7 @@ function renderTabla() {
   btns += `<button class="page-btn" onclick="irPagina(${paginaActual+1})" ${paginaActual===totalPags?'disabled':''}>›</button>`;
   document.getElementById('pag-btns').innerHTML = btns;
   _toggleColPrecio();
+  _toggleColsCliente();
 }
 
 function irPagina(p) {
@@ -682,8 +683,8 @@ async function cambiarCliente(){
     (rp.data||[]).forEach(function(p){ _preciosDelCliente[p.item_id] = p; });
   }
 
-  _toggleColsCliente();
   filtrar();
+  _toggleColsCliente();
 }
 
 function _toggleColsCliente(){
