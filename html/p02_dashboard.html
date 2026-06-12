@@ -7,6 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Robot-IK — Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
@@ -205,27 +206,27 @@ body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text-pri
 
   <div class="content">
     <div class="page-header">
-      <h1>Buen día, Fredy 👋</h1>
-      <p>Resumen general del sistema · Lunes 9 de junio 2025</p>
+      <h1 id="saludo">Buen día 👋</h1>
+      <p id="fecha-hoy">Resumen general del sistema</p>
     </div>
 
     <!-- STATS -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-        <div><div class="stat-num">8</div><div class="stat-label">Clientes</div></div>
+        <div><div class="stat-num" id="stat-clientes">—</div><div class="stat-label">Clientes</div></div>
       </div>
       <div class="stat-card green">
         <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
-        <div><div class="stat-num">24</div><div class="stat-label">Robots</div></div>
+        <div><div class="stat-num" id="stat-robots">—</div><div class="stat-label">Robots</div></div>
       </div>
       <div class="stat-card accent">
         <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></div>
-        <div><div class="stat-num">20</div><div class="stat-label">Consumibles</div></div>
+        <div><div class="stat-num" id="stat-consumibles">—</div><div class="stat-label">Consumibles</div></div>
       </div>
       <div class="stat-card purple">
         <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
-        <div><div class="stat-num">13</div><div class="stat-label">Repuestos</div></div>
+        <div><div class="stat-num" id="stat-repuestos">—</div><div class="stat-label">Repuestos</div></div>
       </div>
     </div>
 
@@ -252,12 +253,8 @@ body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text-pri
 
     <!-- ACTIVIDAD RECIENTE -->
     <div class="section-title">Actividad reciente</div>
-    <div class="activity-card">
-      <div class="activity-item"><div class="act-dot blue"></div><div class="act-text">Robot <strong>MA1440</strong> agregado a <span>Metcon S.A.</span></div><div class="act-time">hace 2h</div></div>
-      <div class="activity-item"><div class="act-dot green"></div><div class="act-text">Cliente <strong>Agro Maq Norte</strong> actualizado</div><div class="act-time">hace 5h</div></div>
-      <div class="activity-item"><div class="act-dot amber"></div><div class="act-text">Consumible <strong>42,0300,0587</strong> agregado al catálogo</div><div class="act-time">ayer</div></div>
-      <div class="activity-item"><div class="act-dot blue"></div><div class="act-text">Usuario <strong>Martín López</strong> creado</div><div class="act-time">ayer</div></div>
-      <div class="activity-item"><div class="act-dot green"></div><div class="act-text">Robot <strong>GP25</strong> configurado para <span>Plastiverde S.R.L.</span></div><div class="act-time">hace 2d</div></div>
+    <div class="activity-card" id="activity-card">
+      <div style="padding:24px;text-align:center;color:var(--text-secondary);font-size:0.85rem">Cargando...</div>
     </div>
 
   </div>
@@ -295,6 +292,94 @@ function _pintarUsuario(){
   } catch(e){}
 }
 _pintarUsuario();
+
+
+// ===== DATOS REALES DESDE SUPABASE =====
+var _sbDash = supabase.createClient("https://bnjmorxjibwvwzadzrdm.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuam1vcnhqaWJ3dnd6YWR6cmRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NzU1MDEsImV4cCI6MjA5NjQ1MTUwMX0.sMNUpbVPKqJf0gDVS6LimaDDfMsYi-Im6kVnedFIfN4", { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+
+// Saludo personalizado + fecha
+(function(){
+  try {
+    var u = JSON.parse(sessionStorage.getItem('rik_user')||'{}');
+    var hora = new Date().getHours();
+    var saludo = hora < 12 ? 'Buen día' : (hora < 19 ? 'Buenas tardes' : 'Buenas noches');
+    var nombre = u.nombre ? (', ' + u.nombre.split(' ')[0]) : '';
+    var el = document.getElementById('saludo');
+    if(el) el.textContent = saludo + nombre + ' 👋';
+    var dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    var hoy = new Date();
+    var f = document.getElementById('fecha-hoy');
+    if(f) f.textContent = 'Resumen general · ' + dias[hoy.getDay()] + ' ' + hoy.getDate() + ' de ' + meses[hoy.getMonth()] + ' ' + hoy.getFullYear();
+  } catch(e){}
+})();
+
+async function cargarStatsDashboard(){
+  try {
+    // Contar registros (head:true trae solo el count, sin datos)
+    var rClientes = await _sbDash.from('clientes').select('*', { count: 'exact', head: true });
+    var rRobots   = await _sbDash.from('robots').select('*', { count: 'exact', head: true });
+    var rCons     = await _sbDash.from('items').select('*', { count: 'exact', head: true }).eq('categoria','consumible');
+    var rRep      = await _sbDash.from('items').select('*', { count: 'exact', head: true }).eq('categoria','repuesto');
+
+    document.getElementById('stat-clientes').textContent    = rClientes.count != null ? rClientes.count : 0;
+    document.getElementById('stat-robots').textContent      = rRobots.count != null ? rRobots.count : 0;
+    document.getElementById('stat-consumibles').textContent = rCons.count != null ? rCons.count : 0;
+    document.getElementById('stat-repuestos').textContent   = rRep.count != null ? rRep.count : 0;
+  } catch(e){
+    console.error('Error stats:', e);
+  }
+}
+
+function _tiempoRelativo(fecha){
+  var ahora = new Date();
+  var d = new Date(fecha);
+  var seg = Math.floor((ahora - d) / 1000);
+  if(seg < 60) return 'recién';
+  var min = Math.floor(seg/60);
+  if(min < 60) return 'hace ' + min + ' min';
+  var hs = Math.floor(min/60);
+  if(hs < 24) return 'hace ' + hs + 'h';
+  var dias = Math.floor(hs/24);
+  if(dias === 1) return 'ayer';
+  if(dias < 30) return 'hace ' + dias + 'd';
+  return d.toLocaleDateString('es-AR');
+}
+
+async function cargarActividad(){
+  try {
+    var items = [];
+    // Últimos clientes
+    var rc = await _sbDash.from('clientes').select('nombre,created_at').order('created_at',{ascending:false}).limit(5);
+    (rc.data||[]).forEach(function(c){
+      items.push({ tipo:'cliente', dot:'blue', texto:'Cliente <strong>'+c.nombre+'</strong> agregado', fecha:c.created_at });
+    });
+    // Últimos robots con cliente
+    var rr = await _sbDash.from('robots').select('modelo,created_at,clientes(nombre)').order('created_at',{ascending:false}).limit(5);
+    (rr.data||[]).forEach(function(r){
+      var cli = r.clientes ? (' a <span>'+r.clientes.nombre+'</span>') : '';
+      items.push({ tipo:'robot', dot:'green', texto:'Robot <strong>'+(r.modelo||'')+'</strong> agregado'+cli, fecha:r.created_at });
+    });
+    // Ordenar todo por fecha desc y tomar los 6 más recientes
+    items.sort(function(a,b){ return new Date(b.fecha) - new Date(a.fecha); });
+    items = items.slice(0,6);
+
+    var card = document.getElementById('activity-card');
+    if(!items.length){
+      card.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-secondary);font-size:0.85rem">Todavía no hay actividad. Empezá cargando clientes y robots.</div>';
+      return;
+    }
+    card.innerHTML = items.map(function(it){
+      return '<div class="activity-item"><div class="act-dot '+it.dot+'"></div><div class="act-text">'+it.texto+'</div><div class="act-time">'+_tiempoRelativo(it.fecha)+'</div></div>';
+    }).join('');
+  } catch(e){
+    console.error('Error actividad:', e);
+    document.getElementById('activity-card').innerHTML = '<div style="padding:24px;text-align:center;color:#e53935;font-size:0.85rem">Error al cargar actividad.</div>';
+  }
+}
+
+cargarStatsDashboard();
+cargarActividad();
 </script>
 </body>
 </html>
