@@ -126,6 +126,25 @@ body{font-family:Sora,sans-serif;background:var(--bg);color:var(--text-primary);
 
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
+<div class="modal-overlay" id="modal-ctrl">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Nuevo controlador</span>
+      <button class="modal-close" onclick="cerrarModalCtrl()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nombre del controlador *</label>
+        <input class="form-input" id="nuevo-ctrl-nombre" placeholder="Ej: NX100, FS100..." oninput="this.value=this.value.toUpperCase()">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModalCtrl()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarNuevoCtrl()">Agregar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-modelo">
   <div class="modal">
     <div class="modal-header">
@@ -209,7 +228,10 @@ body{font-family:Sora,sans-serif;background:var(--bg);color:var(--text-primary);
             </div>
           </div>
           <div class="form-group"><label class="form-label">Controlador</label>
-            <select class="form-select" id="f-ctrl"><option value="">Seleccionar...</option><option>DX100</option><option>DX200</option><option>YRC1000</option><option>YRC1000 micro</option></select>
+            <div style="display:flex;gap:8px">
+              <select class="form-select" id="f-ctrl" style="flex:1"><option value="">Cargando...</option></select>
+              <button type="button" class="btn btn-outline" style="flex-shrink:0;padding:0 14px" title="Agregar nuevo controlador" onclick="abrirModalCtrl()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
           </div>
         </div>
         <div class="form-row" style="margin-bottom:14px">
@@ -479,6 +501,8 @@ document.getElementById('cli-av').textContent = iniciales(clienteNombre);
 document.getElementById('bc-cliente').textContent = clienteNombre || 'Cliente';
 document.getElementById('modal-modelo').addEventListener('click', function(e){ if(e.target===this) cerrarModalModelo(); });
 document.getElementById('nuevo-modelo-nombre').addEventListener('keydown', function(e){ if(e.key==='Enter') guardarNuevoModelo(); });
+document.getElementById('modal-ctrl').addEventListener('click', function(e){ if(e.target===this) cerrarModalCtrl(); });
+document.getElementById('nuevo-ctrl-nombre').addEventListener('keydown', function(e){ if(e.key==='Enter') guardarNuevoCtrl(); });
 
 async function cargarRobotParaEditar(){
   if(!robotId) return;
@@ -491,6 +515,7 @@ async function cargarRobotParaEditar(){
   var robot = rr.data;
   // Esperar a que los modelos estén cargados antes de setear el valor
   await cargarModelos();
+  await cargarControladores();
   document.getElementById('f-modelo').value = robot.modelo || '';
   document.getElementById('f-ctrl').value   = robot.controlador || '';
   document.getElementById('f-serie').value  = robot.serial || '';
@@ -513,6 +538,7 @@ async function cargarRobotParaEditar(){
   }
 }
 
+cargarControladores();
 if(robotId){
   cargarRobotParaEditar();
   // Cambiar texto del botón guardar
@@ -546,5 +572,35 @@ function _pintarUsuario(){
   } catch(e){}
 }
 _pintarUsuario();
+
+// ===== CONTROLADORES DINÁMICOS =====
+async function cargarControladores(){
+  const sel = document.getElementById('f-ctrl');
+  const res = await sb.from('controladores').select('nombre').order('nombre');
+  if(res.error){ sel.innerHTML = '<option value="">Error al cargar</option>'; return; }
+  const opts = (res.data||[]).map(function(c){ return '<option value="'+c.nombre+'">'+c.nombre+'</option>'; }).join('');
+  sel.innerHTML = '<option value="">Seleccionar...</option>' + opts;
+}
+function abrirModalCtrl(){
+  document.getElementById('nuevo-ctrl-nombre').value='';
+  document.getElementById('modal-ctrl').classList.add('open');
+  setTimeout(function(){ document.getElementById('nuevo-ctrl-nombre').focus(); }, 100);
+}
+function cerrarModalCtrl(){
+  document.getElementById('modal-ctrl').classList.remove('open');
+}
+async function guardarNuevoCtrl(){
+  const nombre = document.getElementById('nuevo-ctrl-nombre').value.trim().toUpperCase();
+  if(!nombre){ alert('Ingresa el nombre del controlador.'); return; }
+  const res = await sb.from('controladores').insert({ nombre: nombre });
+  if(res.error){
+    if(res.error.message.indexOf('unique')>=0) alert('Ese controlador ya existe.');
+    else alert('Error: ' + res.error.message);
+    return;
+  }
+  cerrarModalCtrl();
+  await cargarControladores();
+  document.getElementById('f-ctrl').value = nombre;
+}
 </script>
 </body></html>
