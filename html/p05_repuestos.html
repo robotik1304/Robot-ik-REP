@@ -17,7 +17,7 @@ body { font-family: Sora, sans-serif; background: var(--bg); color: var(--text-p
 /* SIDEBAR */
 .sidebar { width: var(--sidebar-w); min-height: 100vh; background: var(--brand-blue-dark); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; transition: transform .3s; }
 .sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.sidebar-logo img { height: 36px; filter: brightness(0) invert(1); }
+.sidebar-logo img { width:100%; max-width:160px; height:auto; display:block; background:#fff; border-radius:8px; padding:8px; }
 .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
 .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: rgba(255,255,255,0.7); font-size: 0.875rem; cursor: pointer; transition: all .2s; text-decoration: none; border-left: 3px solid transparent; }
 .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
@@ -142,12 +142,8 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
       </div>
       <div class="form-group">
         <label class="form-label">Marca</label>
-        <select class="form-input" id="it-marca">
-          <option value="">Seleccionar...</option>
-          <option>Fronius</option><option>Binzel</option><option>Yaskawa</option>
-          <option>ESAB</option><option>Bosch Rexroth</option><option>AirLiquide</option>
-          <option>Festo</option><option>Lincoln</option><option>Tieweld</option>
-        </select>
+        <input class="form-input" id="it-marca" list="lista-marcas" placeholder="Escribí o elegí una marca" autocomplete="off">
+        <datalist id="lista-marcas"><option value="Fronius"><option value="Binzel"><option value="Yaskawa"><option value="ESAB"><option value="Bosch Rexroth"><option value="AirLiquide"><option value="Festo"><option value="Lincoln"><option value="Tieweld"></datalist>
       </div>
     </div>
     <div style="padding:16px 24px;border-top:1px solid #F0F2F7;display:flex;justify-content:flex-end;gap:10px;">
