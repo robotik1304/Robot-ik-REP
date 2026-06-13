@@ -125,6 +125,27 @@ body { font-family: Sora, sans-serif; background: var(--bg); color: var(--text-p
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
 <!-- MODAL CLIENTE -->
+<div class="modal-overlay" id="modal-borrar-cli">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" style="color:#c62828">Eliminar cliente</span>
+      <button class="modal-close" onclick="cerrarModal('modal-borrar-cli')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.9rem;color:var(--text-primary);margin-bottom:14px">Estás por eliminar a <strong id="borrar-cli-nombre"></strong>. Esta acción es <strong>permanente</strong> y también borrará:</p>
+      <div id="borrar-cli-dependencias" style="background:#FFF8F8;border:1px solid #FFCDD2;border-radius:8px;padding:14px 16px;font-size:0.85rem;color:#555;margin-bottom:16px">Cargando...</div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer">
+        <input type="checkbox" id="confirmar-borrado" style="width:16px;height:16px;cursor:pointer">
+        Leí la lista y confirmo que quiero eliminar todo esto.
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modal-borrar-cli')">Cancelar</button>
+      <button class="btn btn-danger" id="btn-confirmar-borrar" onclick="ejecutarBorradoCliente()">Eliminar definitivamente</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-cli">
   <div class="modal">
     <div class="modal-header">
@@ -142,6 +163,7 @@ body { font-family: Sora, sans-serif; background: var(--bg); color: var(--text-p
       <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="cli-mail" type="email" placeholder="contacto@empresa.com"></div>
     </div>
     <div class="modal-footer">
+      <button class="btn btn-danger" id="btn-eliminar-cli" style="display:none;margin-right:auto" onclick="prepararEliminarCliente()">Eliminar cliente</button>
       <button class="btn btn-ghost" onclick="cerrarModal('modal-cli')">Cancelar</button>
       <button class="btn btn-primary" onclick="guardarCliente()">Guardar</button>
     </div>
@@ -280,6 +302,7 @@ function abrirModalCliente(c) {
   document.getElementById('cli-ciudad').value = c?.ciudad || '';
   document.getElementById('cli-tel').value    = c?.telefono || '';
   document.getElementById('cli-mail').value   = c?.mail || '';
+  document.getElementById('btn-eliminar-cli').style.display = c ? 'inline-flex' : 'none';
   document.getElementById('modal-cli').classList.add('open');
 }
 
@@ -305,6 +328,7 @@ async function guardarCliente() {
 
 function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
 document.getElementById('modal-cli').addEventListener('click', e=>{ if(e.target===document.getElementById('modal-cli')) cerrarModal('modal-cli'); });
+document.getElementById('modal-borrar-cli').addEventListener('click', e=>{ if(e.target===document.getElementById('modal-borrar-cli')) cerrarModal('modal-borrar-cli'); });
 document.getElementById('topbar-title').textContent = 'Clientes';
 cargar();
 
@@ -331,5 +355,70 @@ function _pintarUsuario(){
   } catch(e){}
 }
 _pintarUsuario();
+
+// ===== ELIMINAR CLIENTE CON DEPENDENCIAS =====
+async function prepararEliminarCliente(){
+  if(!editandoId) return;
+  var cli = todos.find(function(x){ return x.id===editandoId; });
+  document.getElementById('borrar-cli-nombre').textContent = cli ? cli.nombre : 'este cliente';
+  document.getElementById('confirmar-borrado').checked = false;
+  var cont = document.getElementById('borrar-cli-dependencias');
+  cont.innerHTML = 'Cargando...';
+  document.getElementById('modal-borrar-cli').classList.add('open');
+
+  // Buscar dependencias
+  var robots = await sb.from('robots').select('id,modelo,serial').eq('cliente_id', editandoId);
+  var nRobots = (robots.data||[]).length;
+  var robotIds = (robots.data||[]).map(function(r){ return r.id; });
+
+  var nConjunto = 0;
+  if(robotIds.length){
+    var ri = await sb.from('robot_items').select('id', { count:'exact', head:true }).in('robot_id', robotIds);
+    nConjunto = ri.count || 0;
+  }
+  var precios = await sb.from('precios_cliente').select('id', { count:'exact', head:true }).eq('cliente_id', editandoId);
+  var nPrecios = precios.count || 0;
+
+  var lineas = [];
+  if(nRobots>0){
+    var listaRobots = (robots.data||[]).map(function(r){ return '• ' + (r.modelo||'Robot') + (r.serial?(' (S/N: '+r.serial+')'):''); }).join('<br>');
+    lineas.push('<strong>'+nRobots+' robot'+(nRobots>1?'s':'')+':</strong><br>'+listaRobots);
+  }
+  if(nConjunto>0) lineas.push('<strong>'+nConjunto+'</strong> ítem'+(nConjunto>1?'s':'')+' asignado'+(nConjunto>1?'s':'')+' a sus robots (conjuntos)');
+  if(nPrecios>0) lineas.push('<strong>'+nPrecios+'</strong> precio'+(nPrecios>1?'s':'')+' especial'+(nPrecios>1?'es':'')+' cargado'+(nPrecios>1?'s':''));
+
+  if(!lineas.length){
+    cont.innerHTML = 'Este cliente no tiene robots ni datos asociados. Solo se borrará el cliente.';
+  } else {
+    cont.innerHTML = lineas.join('<br><br>');
+  }
+}
+
+async function ejecutarBorradoCliente(){
+  if(!document.getElementById('confirmar-borrado').checked){
+    alert('Tenés que marcar la casilla de confirmación para continuar.');
+    return;
+  }
+  if(!editandoId) return;
+  var btn = document.getElementById('btn-confirmar-borrar');
+  btn.disabled = true; btn.textContent = 'Eliminando...';
+
+  // Borrar en orden: robot_items -> precios_cliente -> robots -> cliente
+  var robots = await sb.from('robots').select('id').eq('cliente_id', editandoId);
+  var robotIds = (robots.data||[]).map(function(r){ return r.id; });
+  if(robotIds.length){
+    await sb.from('robot_items').delete().in('robot_id', robotIds);
+  }
+  await sb.from('precios_cliente').delete().eq('cliente_id', editandoId);
+  await sb.from('robots').delete().eq('cliente_id', editandoId);
+  var del = await sb.from('clientes').delete().eq('id', editandoId);
+
+  btn.disabled = false; btn.textContent = 'Eliminar definitivamente';
+  if(del.error){ alert('Error al eliminar: '+del.error.message); return; }
+
+  cerrarModal('modal-borrar-cli');
+  cerrarModal('modal-cli');
+  cargar();
+}
 </script>
 </body></html>
