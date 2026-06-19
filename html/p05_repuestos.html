@@ -89,6 +89,8 @@ tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: #FAFBFD; }
 tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
 .cod { font-family: "JetBrains Mono", monospace; font-size: 0.78rem; color: var(--text-secondary); background: var(--bg); padding: 3px 8px; border-radius: 5px; }
+.form-input.input-error { border-color: #c62828 !important; background: #FFF5F5; }
+.codigo-alerta { display:none; font-size:0.75rem; font-weight:600; color:#c62828; background:#FFEBEE; border:1px solid #FFCDD2; border-radius:6px; padding:6px 10px; margin-top:2px; }
 .marca-tag { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
 .tag-fronius  { background: #FBE9E7; color: #BF360C; }
 .tag-binzel   { background: #E8F5E9; color: #1B5E20; }
@@ -145,7 +147,8 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
     <div style="padding:24px;display:flex;flex-direction:column;gap:14px;">
       <div class="form-group">
         <label class="form-label">Código</label>
-        <input class="form-input" id="it-codigo" placeholder="Ej: 42.0001.5604">
+        <input class="form-input" id="it-codigo" placeholder="Ej: 42.0001.5604" oninput="onCodigoInput()" autocomplete="off">
+        <div class="codigo-alerta" id="codigo-alerta"></div>
       </div>
       <div class="form-group">
         <label class="form-label">Descripción *</label>
@@ -454,6 +457,7 @@ function abrirModalItem(item){
   document.getElementById('it-moneda').value = (item && item.moneda) ? item.moneda : 'USD';
   var _u = JSON.parse(sessionStorage.getItem('rik_user')||'{}');
   document.getElementById('grupo-precio').style.display = _u.rol_admin ? 'flex' : 'none';
+  _resetAlertaCodigo();
   document.getElementById('modal-item').style.display = 'flex';
 }
 
@@ -462,11 +466,62 @@ function cerrarModalItem(){
   _editandoItemId = null;
 }
 
+// ===== CONTROL DE CÓDIGO DUPLICADO =====
+let _codigoDuplicado = false;
+let _codigoTimer = null;
+
+function _resetAlertaCodigo(){
+  _codigoDuplicado = false;
+  var inp = document.getElementById('it-codigo');
+  var al  = document.getElementById('codigo-alerta');
+  if(inp) inp.classList.remove('input-error');
+  if(al){ al.style.display = 'none'; al.textContent = ''; }
+}
+
+function onCodigoInput(){
+  clearTimeout(_codigoTimer);
+  _codigoTimer = setTimeout(verificarCodigo, 350);
+}
+
+async function verificarCodigo(){
+  var inp = document.getElementById('it-codigo');
+  var al  = document.getElementById('codigo-alerta');
+  var codigo = inp.value.trim();
+  _resetAlertaCodigo();
+  if(!codigo) return;
+  // Busca el código en TODO el catálogo (consumibles + repuestos)
+  var q = sb.from('items').select('id,descripcion,categoria').eq('codigo', codigo);
+  if(_editandoItemId){ q = q.neq('id', _editandoItemId); }
+  var res = await q;
+  if(res.error) return; // si la consulta falla no bloqueamos; el guardado revalida
+  if(res.data && res.data.length){
+    _codigoDuplicado = true;
+    inp.classList.add('input-error');
+    var ex = res.data[0];
+    var cat = ex.categoria === 'repuesto' ? 'repuesto' : 'consumible';
+    al.textContent = '⚠ El código "' + codigo + '" ya existe (' + cat + ': ' + (ex.descripcion || 'sin descripción') + ').';
+    al.style.display = 'block';
+  }
+}
+
 async function guardarItem(){
   const desc = document.getElementById('it-desc').value.trim();
   if(!desc){ alert('La descripción es obligatoria.'); return; }
+  const codigo = document.getElementById('it-codigo').value.trim();
+  // Control de código duplicado contra todo el catálogo
+  if(codigo){
+    let cq = sb.from('items').select('id').eq('codigo', codigo);
+    if(_editandoItemId){ cq = cq.neq('id', _editandoItemId); }
+    const dup = await cq;
+    if(dup.error){ alert('Error al validar el código: ' + dup.error.message); return; }
+    if(dup.data && dup.data.length){
+      await verificarCodigo();
+      alert('El código "' + codigo + '" ya existe en el catálogo. Cambialo antes de guardar.');
+      return;
+    }
+  }
   const payload = {
-    codigo:      document.getElementById('it-codigo').value.trim() || null,
+    codigo:      codigo || null,
     descripcion: desc,
     marca:       document.getElementById('it-marca').value || null,
     precio_venta: parseFloat(document.getElementById('it-precio').value) || null,

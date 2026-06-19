@@ -284,6 +284,10 @@ async function cargarRobots() {
           onclick="window.location.href='p07_ficha_robot.html?id=${r.id}&cliente_id=${clienteId}'">
           Ver robot
         </button>
+        <button class="btn btn-danger btn-sm" title="Eliminar robot"
+          onclick="eliminarRobot('${r.id}', ${i+1})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
       </div>
     </div>`).join('');
 }
@@ -295,6 +299,16 @@ function irAltaRobot() {
 function editarCliente() {
   // Redirige a lista con parámetro para abrir modal edición
   window.location.href = `p08_lista_clientes.html?editar=${clienteId}`;
+}
+
+async function eliminarRobot(robotId, num) {
+  if (!confirm('¿Eliminar el Robot #' + num + '?\n\nSe borrará también su conjunto de consumibles/repuestos asociado. Esta acción no se puede deshacer.')) return;
+  // Borrar primero las relaciones del conjunto, luego el robot
+  const delItems = await sb.from('robot_items').delete().eq('robot_id', robotId);
+  if (delItems.error) { alert('Error al borrar el conjunto: ' + delItems.error.message); return; }
+  const delRobot = await sb.from('robots').delete().eq('id', robotId);
+  if (delRobot.error) { alert('Error al eliminar el robot: ' + delRobot.error.message); return; }
+  cargarRobots();
 }
 
 cargarCliente();
