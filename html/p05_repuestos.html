@@ -91,6 +91,15 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
 .cod { font-family: "JetBrains Mono", monospace; font-size: 0.78rem; color: var(--text-secondary); background: var(--bg); padding: 3px 8px; border-radius: 5px; }
 .form-input.input-error { border-color: #c62828 !important; background: #FFF5F5; }
 .codigo-alerta { display:none; font-size:0.75rem; font-weight:600; color:#c62828; background:#FFEBEE; border:1px solid #FFCDD2; border-radius:6px; padding:6px 10px; margin-top:2px; }
+.item-thumb { width:44px; height:44px; border-radius:8px; object-fit:cover; border:1px solid #E2E6EF; background:#FAFBFD; cursor:pointer; display:block; }
+.item-thumb-empty { width:44px; height:44px; border-radius:8px; border:1px dashed #D8DCE8; background:#FAFBFD; display:flex; align-items:center; justify-content:center; color:#C2C8D4; }
+.item-thumb-empty svg { width:20px; height:20px; }
+.lightbox-ov { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:300; align-items:center; justify-content:center; padding:24px; cursor:zoom-out; }
+.lightbox-ov.open { display:flex; }
+.lightbox-ov img { max-width:90vw; max-height:90vh; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,0.5); }
+.img-upload-preview { display:none; margin-bottom:8px; position:relative; }
+.img-upload-preview img { width:100%; max-height:180px; object-fit:contain; border:1px solid #E2E6EF; border-radius:8px; background:#FAFBFD; }
+.img-upload-remove { position:absolute; top:6px; right:6px; width:28px; height:28px; border-radius:6px; border:none; background:rgba(198,40,40,0.92); color:#fff; cursor:pointer; font-size:1.1rem; line-height:1; }
 .marca-tag { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
 .tag-fronius  { background: #FBE9E7; color: #BF360C; }
 .tag-binzel   { background: #E8F5E9; color: #1B5E20; }
@@ -138,6 +147,10 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
 
 
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+<div class="lightbox-ov" id="lightbox" onclick="cerrarLightbox()">
+  <img id="lightbox-img" src="" alt="Imagen del ítem">
+</div>
+
 <div class="modal-overlay" id="modal-item" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#fff;border-radius:16px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;max-height:90vh;overflow-y:auto;">
     <div style="padding:20px 24px;border-bottom:1px solid #F0F2F7;display:flex;align-items:center;justify-content:space-between;">
@@ -168,6 +181,15 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
           </select>
           <input class="form-input" id="it-precio" type="number" step="0.01" placeholder="0.00" style="flex:1">
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Imagen del ítem</label>
+        <div class="img-upload-preview" id="img-preview-wrap">
+          <img id="img-preview" src="" alt="Vista previa">
+          <button type="button" class="img-upload-remove" onclick="quitarImagen()" title="Quitar imagen">&times;</button>
+        </div>
+        <input type="file" id="it-imagen-file" accept="image/*" onchange="onImagenSeleccionada(event)" style="font-size:0.82rem;">
+        <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:4px;">Se comprime automáticamente al guardar. Formatos: JPG o PNG.</div>
       </div>
     </div>
     <div style="padding:16px 24px;border-top:1px solid #F0F2F7;display:flex;justify-content:flex-end;gap:10px;">
@@ -282,6 +304,7 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
         <table>
           <thead>
             <tr>
+              <th style="width:60px">Imagen</th>
               <th>Código</th>
               <th>Descripción</th>
               <th>Marca</th>
@@ -293,7 +316,7 @@ tbody td { padding: 12px 16px; font-size: 0.84rem; vertical-align: middle; }
             </tr>
           </thead>
           <tbody id="tabla-body">
-            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-secondary)">Cargando...</td></tr>
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-secondary)">Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -328,7 +351,7 @@ async function cargarItems() {
   const { data, error } = await sb.from('items').select('*').eq('categoria','repuesto').order('marca').order('descripcion');
   if (error) {
     document.getElementById('tabla-body').innerHTML =
-      '<tr><td colspan="6" style="text-align:center;padding:40px;color:#e53935">Error: '+error.message+'</td></tr>';
+      '<tr><td colspan="7" style="text-align:center;padding:40px;color:#e53935">Error: '+error.message+'</td></tr>';
     return;
   }
   todos = data || [];
@@ -363,13 +386,17 @@ function render() {
 
   if (!page.length) {
     document.getElementById('tabla-body').innerHTML =
-      '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-secondary)">No se encontraron repuestos.</td></tr>';
+      '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-secondary)">No se encontraron repuestos.</td></tr>';
     document.getElementById('pag-btns').innerHTML='';
     return;
   }
 
   document.getElementById('tabla-body').innerHTML = page.map(item=>`
     <tr>
+      <td>${item.imagen
+        ? `<img class="item-thumb" src="${item.imagen}" alt="" onclick="verImagen('${item.id}')">`
+        : `<div class="item-thumb-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`}
+      </td>
       <td><span class="cod">${item.codigo||'—'}</span></td>
       <td class="desc-cell" title="${item.descripcion||''}">${item.descripcion||'—'}</td>
       <td>${marcaTag(item.marca)}</td>
@@ -447,6 +474,58 @@ _cargarClientesEnSelector();
 // ===== ALTA / EDICIÓN DE ITEMS =====
 let _editandoItemId = null;
 
+// ===== IMAGEN DEL ÍTEM =====
+let _imagenActual = null; // data URL (base64) o null
+
+function onImagenSeleccionada(e){
+  var file = e.target.files && e.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var img = new Image();
+    img.onload = function(){
+      var MAX = 500;
+      var w = img.width, h = img.height;
+      if(w > h){ if(w > MAX){ h = Math.round(h * MAX / w); w = MAX; } }
+      else     { if(h > MAX){ w = Math.round(w * MAX / h); h = MAX; } }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      _imagenActual = canvas.toDataURL('image/jpeg', 0.72);
+      _mostrarPreview(_imagenActual);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function _mostrarPreview(dataUrl){
+  var wrap = document.getElementById('img-preview-wrap');
+  var el   = document.getElementById('img-preview');
+  if(dataUrl){ el.src = dataUrl; wrap.style.display = 'block'; }
+  else       { el.src = '';      wrap.style.display = 'none'; }
+}
+
+function quitarImagen(){
+  _imagenActual = null;
+  document.getElementById('it-imagen-file').value = '';
+  _mostrarPreview(null);
+}
+
+function verImagen(id){
+  var it = todos.find(function(x){ return String(x.id) === String(id); });
+  if(!it || !it.imagen) return;
+  document.getElementById('lightbox-img').src = it.imagen;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function cerrarLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightbox-img').src = '';
+}
+
 function abrirModalItem(item){
   _editandoItemId = item ? item.id : null;
   document.getElementById('modal-item-titulo').textContent = item ? 'Editar ítem' : 'Nuevo repuesto';
@@ -458,6 +537,9 @@ function abrirModalItem(item){
   var _u = JSON.parse(sessionStorage.getItem('rik_user')||'{}');
   document.getElementById('grupo-precio').style.display = _u.rol_admin ? 'flex' : 'none';
   _resetAlertaCodigo();
+  _imagenActual = item ? (item.imagen || null) : null;
+  document.getElementById('it-imagen-file').value = '';
+  _mostrarPreview(_imagenActual);
   document.getElementById('modal-item').style.display = 'flex';
 }
 
@@ -526,7 +608,8 @@ async function guardarItem(){
     marca:       document.getElementById('it-marca').value || null,
     precio_venta: parseFloat(document.getElementById('it-precio').value) || null,
     moneda:      document.getElementById('it-moneda').value || 'USD',
-    categoria:   'repuesto'
+    categoria:   'repuesto',
+    imagen:      _imagenActual
   };
   let error;
   if(_editandoItemId){
